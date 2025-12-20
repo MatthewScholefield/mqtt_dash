@@ -1,16 +1,25 @@
-# mqtt_dash
+# MQTT Dash
 
-A new Flutter project.
+A simple Flutter dashboard for MQTT devices. Control lights, sensors, switches, etc.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Connect to any MQTT broker
+- Add buttons, displays, and toggles for your devices
+- Real-time updates when messages arrive
+- Desktop/Linux support
 
-A few resources to get you started if this is your first Flutter project:
+## Setup
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+flutter pub get
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Usage
+
+1. Open app, add your MQTT broker settings
+2. Create widgets for your devices
+3. Control/monitor stuff
+
+Platform-specific Flutter setup applies.
