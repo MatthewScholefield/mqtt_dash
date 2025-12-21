@@ -7,6 +7,7 @@ enum WidgetType {
   textDisplay,
   sensorDisplay,
   toggleSwitch,
+  slider,
 }
 
 enum MqttWidgetState {
@@ -32,6 +33,13 @@ class DashboardWidget {
   final int gridWidth;
   final int gridHeight;
   final Map<String, dynamic> customProperties;
+  final double sliderMin;
+  final double sliderMax;
+  final double sliderValue;
+  final int sliderDivisions;
+  final String sliderUnit;
+  final bool sliderVertical;
+  final bool publishOnRelease;
 
   DashboardWidget({
     required this.id,
@@ -49,6 +57,13 @@ class DashboardWidget {
     this.gridWidth = 2,
     this.gridHeight = 2,
     this.customProperties = const {},
+    this.sliderMin = 0.0,
+    this.sliderMax = 100.0,
+    this.sliderValue = 0.0,
+    this.sliderDivisions = 10,
+    this.sliderUnit = '',
+    this.sliderVertical = false,
+    this.publishOnRelease = false,
   });
 
   factory DashboardWidget.fromJson(Map<String, dynamic> json) =>
@@ -72,6 +87,13 @@ class DashboardWidget {
     int? gridWidth,
     int? gridHeight,
     Map<String, dynamic>? customProperties,
+    double? sliderMin,
+    double? sliderMax,
+    double? sliderValue,
+    int? sliderDivisions,
+    String? sliderUnit,
+    bool? sliderVertical,
+    bool? publishOnRelease,
   }) {
     return DashboardWidget(
       id: id ?? this.id,
@@ -89,6 +111,13 @@ class DashboardWidget {
       gridWidth: gridWidth ?? this.gridWidth,
       gridHeight: gridHeight ?? this.gridHeight,
       customProperties: customProperties ?? this.customProperties,
+      sliderMin: sliderMin ?? this.sliderMin,
+      sliderMax: sliderMax ?? this.sliderMax,
+      sliderValue: sliderValue ?? this.sliderValue,
+      sliderDivisions: sliderDivisions ?? this.sliderDivisions,
+      sliderUnit: sliderUnit ?? this.sliderUnit,
+      sliderVertical: sliderVertical ?? this.sliderVertical,
+      publishOnRelease: publishOnRelease ?? this.publishOnRelease,
     );
   }
 
@@ -111,6 +140,18 @@ class DashboardWidget {
       case MqttWidgetState.unknown:
         return unknownValue.isNotEmpty ? unknownValue : offValue;
     }
+  }
+
+  double getSliderValueFromPayload(String payload) {
+    try {
+      return double.parse(payload);
+    } catch (e) {
+      return sliderValue;
+    }
+  }
+
+  String getPayloadForSliderValue(double value) {
+    return value.toStringAsFixed(1);
   }
 
   @override

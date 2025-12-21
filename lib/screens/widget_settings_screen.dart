@@ -20,6 +20,10 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
   late TextEditingController _onValueController;
   late TextEditingController _offValueController;
   late TextEditingController _unknownValueController;
+  late TextEditingController _sliderMinController;
+  late TextEditingController _sliderMaxController;
+  late TextEditingController _sliderDivisionsController;
+  late TextEditingController _sliderUnitController;
 
   WidgetType _selectedType = WidgetType.button;
   int _qos = 2;
@@ -27,6 +31,14 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
 
   String _selectedOnIcon = 'power';
   String _selectedOffIcon = 'power_off';
+
+  double _sliderMin = 0.0;
+  double _sliderMax = 100.0;
+  double _sliderValue = 0.0;
+  int _sliderDivisions = 10;
+  String _sliderUnit = '';
+  bool _sliderVertical = false;
+  bool _publishOnRelease = false;
 
   final List<String> _availableIcons = [
     'power',
@@ -57,7 +69,20 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
       _retain = widget.widget!.retain;
       _selectedOnIcon = widget.widget!.icon.onIcon;
       _selectedOffIcon = widget.widget!.icon.offIcon;
+
+      _sliderMin = widget.widget!.sliderMin;
+      _sliderMax = widget.widget!.sliderMax;
+      _sliderValue = widget.widget!.sliderValue;
+      _sliderDivisions = widget.widget!.sliderDivisions;
+      _sliderUnit = widget.widget!.sliderUnit;
+      _sliderVertical = widget.widget!.sliderVertical;
+      _publishOnRelease = widget.widget!.publishOnRelease;
     }
+
+    _sliderMinController = TextEditingController(text: _sliderMin.toString());
+    _sliderMaxController = TextEditingController(text: _sliderMax.toString());
+    _sliderDivisionsController = TextEditingController(text: _sliderDivisions.toString());
+    _sliderUnitController = TextEditingController(text: _sliderUnit);
   }
 
   @override
@@ -67,6 +92,10 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
     _onValueController.dispose();
     _offValueController.dispose();
     _unknownValueController.dispose();
+    _sliderMinController.dispose();
+    _sliderMaxController.dispose();
+    _sliderDivisionsController.dispose();
+    _sliderUnitController.dispose();
     super.dispose();
   }
 
@@ -74,6 +103,12 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
+
+    // Parse slider values from controllers
+    final sliderMin = double.tryParse(_sliderMinController.text) ?? 0.0;
+    final sliderMax = double.tryParse(_sliderMaxController.text) ?? 100.0;
+    final sliderDivisions = int.tryParse(_sliderDivisionsController.text) ?? 10;
+    final sliderUnit = _sliderUnitController.text;
 
     final updatedWidget = DashboardWidget(
       id: widget.widget?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -94,6 +129,13 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
       gridY: widget.widget?.gridY ?? 0,
       gridWidth: widget.widget?.gridWidth ?? 2,
       gridHeight: widget.widget?.gridHeight ?? 2,
+      sliderMin: sliderMin,
+      sliderMax: sliderMax,
+      sliderValue: _sliderValue,
+      sliderDivisions: sliderDivisions,
+      sliderUnit: sliderUnit,
+      sliderVertical: _sliderVertical,
+      publishOnRelease: _publishOnRelease,
     );
 
     if (widget.widget == null) {
@@ -169,99 +211,217 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
                 });
               },
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Values',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            if (_selectedType == WidgetType.button || _selectedType == WidgetType.toggleSwitch)
+              Column(
+                children: [
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Values',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _onValueController,
+                    decoration: const InputDecoration(
+                      labelText: 'ON Value',
+                      border: OutlineInputBorder(),
+                      hintText: 'Value when device is ON',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _offValueController,
+                    decoration: const InputDecoration(
+                      labelText: 'OFF Value',
+                      border: OutlineInputBorder(),
+                      hintText: 'Value when device is OFF',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _unknownValueController,
+                    decoration: const InputDecoration(
+                      labelText: 'Unknown Value',
+                      border: OutlineInputBorder(),
+                      hintText: 'Default value for unknown states',
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _onValueController,
-              decoration: const InputDecoration(
-                labelText: 'ON Value',
-                border: OutlineInputBorder(),
-                hintText: 'Value when device is ON',
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _offValueController,
-              decoration: const InputDecoration(
-                labelText: 'OFF Value',
-                border: OutlineInputBorder(),
-                hintText: 'Value when device is OFF',
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _unknownValueController,
-              decoration: const InputDecoration(
-                labelText: 'Unknown Value',
-                border: OutlineInputBorder(),
-                hintText: 'Default value for unknown states',
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Icons',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _selectedOnIcon,
-              decoration: const InputDecoration(
-                labelText: 'ON Icon',
-                border: OutlineInputBorder(),
-              ),
-              items: _availableIcons.map((icon) {
-                return DropdownMenuItem(
-                  value: icon,
-                  child: Row(
+            if (_selectedType == WidgetType.slider)
+              Column(
+                children: [
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Slider Settings',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
                     children: [
-                      Icon(_getIconData(icon)),
-                      const SizedBox(width: 8),
-                      Text(icon),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _sliderMinController,
+                          decoration: const InputDecoration(
+                            labelText: 'Minimum Value',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Required';
+                            }
+                            final min = double.tryParse(value);
+                            if (min == null) {
+                              return 'Invalid number';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _sliderMaxController,
+                          decoration: const InputDecoration(
+                            labelText: 'Maximum Value',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Required';
+                            }
+                            final max = double.tryParse(value);
+                            if (max == null) {
+                              return 'Invalid number';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
                     ],
                   ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedOnIcon = value!;
-                });
-              },
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _selectedOffIcon,
-              decoration: const InputDecoration(
-                labelText: 'OFF Icon',
-                border: OutlineInputBorder(),
-              ),
-              items: _availableIcons.map((icon) {
-                return DropdownMenuItem(
-                  value: icon,
-                  child: Row(
-                    children: [
-                      Icon(_getIconData(icon)),
-                      const SizedBox(width: 8),
-                      Text(icon),
-                    ],
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _sliderDivisionsController,
+                    decoration: const InputDecoration(
+                      labelText: 'Divisions (0 for continuous)',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Required';
+                      }
+                      final divisions = int.tryParse(value);
+                      if (divisions == null || divisions < 0) {
+                        return 'Invalid number';
+                      }
+                      return null;
+                    },
                   ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedOffIcon = value!;
-                });
-              },
-            ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _sliderUnitController,
+                    decoration: const InputDecoration(
+                      labelText: 'Unit (optional)',
+                      border: OutlineInputBorder(),
+                      hintText: 'e.g., °C, %, rpm',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    title: const Text('Vertical Slider'),
+                    subtitle: const Text('Display slider vertically'),
+                    value: _sliderVertical,
+                    onChanged: (value) {
+                      setState(() {
+                        _sliderVertical = value;
+                      });
+                    },
+                  ),
+                  SwitchListTile(
+                    title: const Text('Send on Release'),
+                    subtitle: const Text('Send MQTT value only when releasing the slider'),
+                    value: _publishOnRelease,
+                    onChanged: (value) {
+                      setState(() {
+                        _publishOnRelease = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            if (_selectedType != WidgetType.slider)
+              Column(
+                children: [
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Icons',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: _selectedOnIcon,
+                    decoration: const InputDecoration(
+                      labelText: 'ON Icon',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _availableIcons.map((icon) {
+                      return DropdownMenuItem(
+                        value: icon,
+                        child: Row(
+                          children: [
+                            Icon(_getIconData(icon)),
+                            const SizedBox(width: 8),
+                            Text(icon),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedOnIcon = value!;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: _selectedOffIcon,
+                    decoration: const InputDecoration(
+                      labelText: 'OFF Icon',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _availableIcons.map((icon) {
+                      return DropdownMenuItem(
+                        value: icon,
+                        child: Row(
+                          children: [
+                            Icon(_getIconData(icon)),
+                            const SizedBox(width: 8),
+                            Text(icon),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedOffIcon = value!;
+                      });
+                    },
+                  ),
+                ],
+              ),
             const SizedBox(height: 24),
             const Text(
               'MQTT Options',
@@ -326,6 +486,8 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
         return 'Sensor Display';
       case WidgetType.toggleSwitch:
         return 'Toggle Switch';
+      case WidgetType.slider:
+        return 'Slider';
     }
   }
 

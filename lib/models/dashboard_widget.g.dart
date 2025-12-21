@@ -24,6 +24,13 @@ DashboardWidget _$DashboardWidgetFromJson(Map<String, dynamic> json) =>
       gridHeight: (json['gridHeight'] as num?)?.toInt() ?? 2,
       customProperties:
           json['customProperties'] as Map<String, dynamic>? ?? const {},
+      sliderMin: (json['sliderMin'] as num?)?.toDouble() ?? 0.0,
+      sliderMax: (json['sliderMax'] as num?)?.toDouble() ?? 100.0,
+      sliderValue: (json['sliderValue'] as num?)?.toDouble() ?? 0.0,
+      sliderDivisions: (json['sliderDivisions'] as num?)?.toInt() ?? 10,
+      sliderUnit: json['sliderUnit'] as String? ?? '',
+      sliderVertical: json['sliderVertical'] as bool? ?? false,
+      publishOnRelease: json['publishOnRelease'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$DashboardWidgetToJson(DashboardWidget instance) =>
@@ -43,6 +50,13 @@ Map<String, dynamic> _$DashboardWidgetToJson(DashboardWidget instance) =>
       'gridWidth': instance.gridWidth,
       'gridHeight': instance.gridHeight,
       'customProperties': instance.customProperties,
+      'sliderMin': instance.sliderMin,
+      'sliderMax': instance.sliderMax,
+      'sliderValue': instance.sliderValue,
+      'sliderDivisions': instance.sliderDivisions,
+      'sliderUnit': instance.sliderUnit,
+      'sliderVertical': instance.sliderVertical,
+      'publishOnRelease': instance.publishOnRelease,
     };
 
 const _$WidgetTypeEnumMap = {
@@ -50,6 +64,7 @@ const _$WidgetTypeEnumMap = {
   WidgetType.textDisplay: 'textDisplay',
   WidgetType.sensorDisplay: 'sensorDisplay',
   WidgetType.toggleSwitch: 'toggleSwitch',
+  WidgetType.slider: 'slider',
 };
 
 IconDataConfig _$IconDataConfigFromJson(Map<String, dynamic> json) =>

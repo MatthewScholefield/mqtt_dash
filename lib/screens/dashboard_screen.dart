@@ -6,6 +6,7 @@ import '../models/dashboard_widget.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/mqtt_provider.dart';
 import '../widgets/button_widget.dart';
+import '../widgets/slider_widget.dart';
 import 'widget_settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -204,6 +205,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           },
         );
+      case WidgetType.slider:
+        return InteractiveSliderWidget(widgetConfig: widgetConfig);
       case WidgetType.textDisplay:
       case WidgetType.sensorDisplay:
       case WidgetType.toggleSwitch:
