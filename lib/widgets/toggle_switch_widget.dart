@@ -67,7 +67,7 @@ class ToggleSwitchWidget extends DashboardWidgetBase {
             children: [
               // Off side
               AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 120),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: state == MqttWidgetState.off
@@ -88,7 +88,7 @@ class ToggleSwitchWidget extends DashboardWidgetBase {
               ),
               // Handle
               AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 120),
                 width: 4,
                 height: 24,
                 decoration: BoxDecoration(
@@ -100,7 +100,7 @@ class ToggleSwitchWidget extends DashboardWidgetBase {
               ),
               // On side
               AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 120),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: state == MqttWidgetState.on
@@ -211,7 +211,7 @@ class _InteractiveToggleSwitchWidgetState extends State<InteractiveToggleSwitchW
     );
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 100),
       vsync: this,
     );
 
