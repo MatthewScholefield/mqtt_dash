@@ -58,9 +58,76 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Consumer<DashboardProvider>(
           builder: (context, dashboardProvider, child) {
             final currentDashboard = dashboardProvider.currentDashboard;
-            return Text(
-              currentDashboard?.name ?? 'MQTT Dashboard',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+
+            if (dashboardProvider.dashboards.length <= 1) {
+              // Show simple title when there's only one dashboard
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  currentDashboard?.name ?? 'MQTT Dashboard',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              );
+            }
+
+            // Show dropdown when there are multiple dashboards
+            return Expanded(
+              child: DropdownButton<String>(
+                value: currentDashboard?.id,
+                underline: const SizedBox(), // Hide the underline
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                ),
+                dropdownColor: Theme.of(context).colorScheme.primary,
+                isDense: true, // Make the dropdown more compact
+                isExpanded: true, // Allow dropdown to expand to available space
+                selectedItemBuilder: (BuildContext context) {
+                  // Custom builder for selected item to ensure truncation
+                  return dashboardProvider.dashboards.map((dashboard) {
+                    return Text(
+                      dashboard.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
+                items: dashboardProvider.dashboards.map((dashboard) {
+                  return DropdownMenuItem<String>(
+                    value: dashboard.id,
+                    child: Text(
+                      dashboard.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? dashboardId) async {
+                  if (dashboardId != null && dashboardId != currentDashboard?.id) {
+                    final selectedDashboard = dashboardProvider.dashboards.firstWhere((d) => d.id == dashboardId);
+                    final messenger = ScaffoldMessenger.of(context);
+                    await dashboardProvider.setCurrentDashboard(dashboardId);
+                    if (mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text('Switched to ${selectedDashboard.name}'),
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
             );
           },
         ),

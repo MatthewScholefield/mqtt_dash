@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/mqtt_provider.dart';
 import 'providers/dashboard_provider.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/dashboards_screen.dart';
 import 'screens/mqtt_settings_screen.dart';
 import 'screens/widget_settings_screen.dart';
 import 'models/dashboard_widget.dart';
@@ -63,6 +64,10 @@ class MyApp extends StatelessWidget {
         home: const DashboardScreen(),
         onGenerateRoute: (settings) {
           switch (settings.name) {
+            case '/dashboards':
+              return MaterialPageRoute(
+                builder: (context) => const DashboardsScreen(),
+              );
             case '/mqtt_settings':
               return MaterialPageRoute(
                 builder: (context) => const MqttSettingsScreen(),

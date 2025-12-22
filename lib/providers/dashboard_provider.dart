@@ -41,7 +41,7 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> createDashboard({
+  Future<Dashboard> createDashboard({
     required String name,
     required String description,
     required String mqttConfigId,
@@ -61,8 +61,10 @@ class DashboardProvider extends ChangeNotifier {
       _dashboards.add(dashboard);
       await setCurrentDashboard(dashboard.id);
       notifyListeners();
+      return dashboard;
     } catch (e) {
       AppLogger.warning('Failed to create dashboard', e);
+      rethrow;
     }
   }
 

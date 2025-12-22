@@ -67,8 +67,13 @@ class _InteractiveSliderWidgetState extends State<InteractiveSliderWidget> {
       debugTag: 'Slider-${widget.widgetConfig.name}',
       onStateUpdated: () {
         if (mounted) {
-          debugPrint('[Slider-${widget.widgetConfig.name}] State tracker callback - calling setState');
-          setState(() {});
+          debugPrint('[Slider-${widget.widgetConfig.name}] State tracker callback - scheduling setState');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              debugPrint('[Slider-${widget.widgetConfig.name}] PostFrame callback - calling setState');
+              setState(() {});
+            }
+          });
         }
       },
     );
@@ -102,10 +107,6 @@ class _InteractiveSliderWidgetState extends State<InteractiveSliderWidget> {
   void _setLocalValue(double value) {
     debugPrint('[Slider-${widget.widgetConfig.name}] Setting local value to: $value');
     _stateTracker.updateLocalValue(value);
-    if (mounted) {
-      debugPrint('[Slider-${widget.widgetConfig.name}] Calling setState');
-      setState(() {});
-    }
   }
 
   @override
