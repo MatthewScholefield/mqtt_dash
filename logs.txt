@@ -1,0 +1,285 @@
+Launching lib/main.dart on CPH2655 in debug mode...
+Running Gradle task 'assembleDebug'...                              4.7s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+Installing build/app/outputs/flutter-apk/app-debug.apk...           9.2s
+D/FlutterJNI(30800): Beginning load of flutter...
+D/FlutterJNI(30800): flutter (null) was loaded normally!
+I/flutter (30800): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+I/flutter (30800): XYZ MQTT Provider: Setting up connection state listener
+I/flutter (30800): XYZ MQTT Provider: Attempting to connect to 45.33.42.198:9735
+I/flutter (30800): XYZ MQTT Provider: Connection state changed to: MqttConnectionState.disconnected
+I/flutter (30800): Using Native MQTT Service
+I/flutter (30800): XYZ MQTT Attempting connection to 45.33.42.198:9735 (TLS: false)
+I/flutter (30800): 1-2025-12-21 10:16:23.692295 -- MqttClient::connect - Connection timeout period is 5000 milliseconds
+I/flutter (30800): 1-2025-12-21 10:16:23.693917 -- MqttClient::connect - keep alive is enabled with a value of 60 seconds
+I/flutter (30800): 1-2025-12-21 10:16:23.694762 -- MqttConnectionKeepAlive:: Initialised with a keep alive value of 60 seconds
+I/flutter (30800): 1-2025-12-21 10:16:23.694794 -- MqttConnectionKeepAlive:: Disconnect on no ping response is disabled
+I/flutter (30800): 1-2025-12-21 10:16:23.695179 -- MqttConnectionHandlerBase::connect - server 45.33.42.198, port 9735
+I/flutter (30800): 1-2025-12-21 10:16:23.696214 -- SynchronousMqttServerConnectionHandler::internalConnect entered
+I/flutter (30800): 1-2025-12-21 10:16:23.696276 -- SynchronousMqttServerConnectionHandler::internalConnect - initiating connection try 0, auto reconnect in progress false
+I/flutter (30800): 1-2025-12-21 10:16:23.696381 -- SynchronousMqttServerConnectionHandler::internalConnect - insecure TCP selected
+I/flutter (30800): 1-2025-12-21 10:16:23.696592 -- SynchronousMqttServerConnectionHandler::internalConnect - calling connect
+I/flutter (30800): 1-2025-12-21 10:16:23.696937 -- MqttNormalConnection::connect - entered
+I/flutter (30800): XYZ MQTT Provider: Connection state changed to: MqttConnectionState.connecting
+I/flutter (30800): 1-2025-12-21 10:16:23.960734 -- MqttServerConnection::_startListening
+I/flutter (30800): 1-2025-12-21 10:16:23.961512 -- SynchronousMqttServerConnectionHandler::internalConnect - connection complete
+I/flutter (30800): 1-2025-12-21 10:16:23.961554 -- SynchronousMqttServerConnectionHandler::internalConnect sending connect message
+I/flutter (30800): 1-2025-12-21 10:16:23.961638 -- MqttConnectionHandlerBase::sendMessage - MQTTMessage of type MqttMessageType.connect
+I/flutter (30800): Header: MessageType = MqttMessageType.connect, Duplicate = false, Retain = false, Qos = MqttQos.atMostOnce, Size = 0
+I/flutter (30800): Connect Variable Header: ProtocolName=MQIsdp, ProtocolVersion=3, ConnectFlags=Connect Flags: Reserved1=false, CleanStart=false, WillFlag=false, WillQos=MqttQos.atMostOnce, WillRetain=false, PasswordFlag=true, UserNameFlag=true, KeepAlive=60
+I/flutter (30800): MqttConnectPayload - client identifier is : s23
+I/flutter (30800): 1-2025-12-21 10:16:23.966340 -- SynchronousMqttServerConnectionHandler::internalConnect - pre sleep, state = Connection status is connecting with return code of noneSpecified and a disconnection origin of none
+
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during performLayout():
+BoxConstraints has a negative minimum width.
+These invalid constraints were provided to RenderIndexedSemantics's layout() function by the
+following function, which probably computed the invalid constraints in question:
+  RenderSliverMasonryGrid.performLayout
+(package:flutter_staggered_grid_view/src/rendering/sliver_masonry_grid.dart:407:23)
+The offending constraints were:
+  BoxConstraints(w=-4.0, 0.0<=h<=Infinity; NOT NORMALIZED)
+
+The relevant error-causing widget was:
+  SliverMasonryGrid
+  SliverMasonryGrid:file:///home/matthew/.pub-cache/hosted/pub.dev/flutter_staggered_grid_view-0.7.0/lib/src/widgets/masonry_grid_view.dart:390:12
+
+When the exception was thrown, this was the stack:
+#0      BoxConstraints.debugAssertIsValid.<anonymous closure>.throwError (package:flutter/src/rendering/box.dart:549:9)
+#1      BoxConstraints.debugAssertIsValid.<anonymous closure> (package:flutter/src/rendering/box.dart:590:9)
+#2      BoxConstraints.debugAssertIsValid (package:flutter/src/rendering/box.dart:619:6)
+#3      RenderObject.layout (package:flutter/src/rendering/object.dart:2675:19)
+#4      RenderSliverMasonryGrid.performLayout (package:flutter_staggered_grid_view/src/rendering/sliver_masonry_grid.dart:407:23)
+#5      RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#6      RenderSliverEdgeInsetsPadding.performLayout (package:flutter/src/rendering/sliver_padding.dart:133:12)
+#7      RenderSliverPadding.performLayout (package:flutter/src/rendering/sliver_padding.dart:371:11)
+#8      RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#9      RenderViewportBase.layoutChildSequence (package:flutter/src/rendering/viewport.dart:673:13)
+#10     RenderViewport._attemptLayout (package:flutter/src/rendering/viewport.dart:1684:12)
+#11     RenderViewport.performLayout (package:flutter/src/rendering/viewport.dart:1575:20)
+#12     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#13     RenderProxyBoxMixin.performLayout (package:flutter/src/rendering/proxy_box.dart:115:18)
+#14     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#15     RenderProxyBoxMixin.performLayout (package:flutter/src/rendering/proxy_box.dart:115:18)
+#16     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#17     RenderProxyBoxMixin.performLayout (package:flutter/src/rendering/proxy_box.dart:115:18)
+#18     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#19     RenderProxyBoxMixin.performLayout (package:flutter/src/rendering/proxy_box.dart:115:18)
+#20     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#21     RenderProxyBoxMixin.performLayout (package:flutter/src/rendering/proxy_box.dart:115:18)
+#22     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#23     RenderProxyBoxMixin.performLayout (package:flutter/src/rendering/proxy_box.dart:115:18)
+#24     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#25     RenderProxyBoxMixin.performLayout (package:flutter/src/rendering/proxy_box.dart:115:18)
+#26     RenderCustomPaint.performLayout (package:flutter/src/rendering/custom_paint.dart:574:11)
+#27     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#28     RenderProxyBoxMixin.performLayout (package:flutter/src/rendering/proxy_box.dart:115:18)
+#29     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#30     RenderProxyBoxMixin.performLayout (package:flutter/src/rendering/proxy_box.dart:115:18)
+#31     _RenderCustomClip.performLayout (package:flutter/src/rendering/proxy_box.dart:1481:11)
+#32     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#33     RenderPadding.performLayout (package:flutter/src/rendering/shifted_box.dart:243:12)
+#34     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#35     ChildLayoutHelper.layoutChild (package:flutter/src/rendering/layout_helper.dart:62:11)
+#36     RenderStack._computeSize (package:flutter/src/rendering/stack.dart:645:43)
+#37     RenderStack.performLayout (package:flutter/src/rendering/stack.dart:680:12)
+#38     RenderObject.layout (package:flutter/src/rendering/object.dart:2775:7)
+#39     MultiChildLayoutDelegate.layoutChild (package:flutter/src/rendering/custom_layout.dart:180:12)
+#40     _ScaffoldLayout.performLayout (package:flutter/src/material/scaffold.dart:1112:7)
+#41     MultiChildLayoutDelegate._callPerformLayout (package:flutter/src/rendering/custom_layout.dart:249:7)
+#42     RenderCustomMultiChildLayoutBox.performLayout (package:flutter/src/rendering/custom_layout.dart:420:14)
+#43     RenderObject._layoutWithoutResize (package:flutter/src/rendering/object.dart:2623:7)
+#44     PipelineOwner.flushLayout (package:flutter/src/rendering/object.dart:1170:18)
+#45     PipelineOwner.flushLayout (package:flutter/src/rendering/object.dart:1183:15)
+#46     RendererBinding.drawFrame (package:flutter/src/rendering/binding.dart:629:23)
+#47     WidgetsBinding.drawFrame (package:flutter/src/widgets/binding.dart:1264:13)
+#48     RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:495:5)
+#49     SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1434:15)
+#50     SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1347:9)
+#51     SchedulerBinding._handleDrawFrame (package:flutter/src/scheduler/binding.dart:1200:5)
+#52     _invoke (dart:ui/hooks.dart:356:13)
+#53     PlatformDispatcher._drawFrame (dart:ui/platform_dispatcher.dart:444:5)
+#54     _drawFrame (dart:ui/hooks.dart:328:31)
+
+The following RenderObject was being processed when the exception was fired: RenderSliverMasonryGrid#8639e relayoutBoundary=up2 NEEDS-LAYOUT NEEDS-PAINT NEEDS-COMPOSITING-BITS-UPDATE:
+  creator: SliverMasonryGrid ← MediaQuery ← SliverPadding ← Viewport ← IgnorePointer-[GlobalKey#c1d36]
+    ← Semantics ← Listener ← _GestureSemantics ←
+    RawGestureDetector-[LabeledGlobalKey<RawGestureDetectorState>#5a8b0] ← Listener ← _ScrollableScope
+    ← _ScrollSemantics-[GlobalKey#15f3a] ← ⋯
+  parentData: paintOffset=Offset(0.0, 0.0) (can use size)
+  constraints: SliverConstraints(AxisDirection.down, GrowthDirection.forward, ScrollDirection.idle,
+    scrollOffset: 0.0, precedingScrollExtent: 0.0, remainingPaintExtent: 0.0, crossAxisExtent: 0.0,
+    crossAxisDirection: AxisDirection.right, viewportMainAxisExtent: 0.0, remainingCacheExtent: 250.0,
+    cacheOrigin: 0.0)
+  geometry: null
+  currently live children: 0 to 0
+This RenderObject had the following descendants (showing up to depth 5):
+    child with index 0: RenderIndexedSemantics#7b51b NEEDS-LAYOUT NEEDS-PAINT NEEDS-COMPOSITING-BITS-UPDATE
+      child: RenderRepaintBoundary#c4481 NEEDS-LAYOUT NEEDS-PAINT NEEDS-COMPOSITING-BITS-UPDATE
+        child: RenderSemanticsAnnotations#a8e0a NEEDS-LAYOUT NEEDS-PAINT NEEDS-COMPOSITING-BITS-UPDATE
+          child: RenderPadding#28030 NEEDS-LAYOUT NEEDS-PAINT NEEDS-COMPOSITING-BITS-UPDATE
+            child: RenderPhysicalShape#2bd7a NEEDS-LAYOUT NEEDS-PAINT NEEDS-COMPOSITING-BITS-UPDATE
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+Another exception was thrown: Null check operator used on a null value
+Another exception was thrown: Null check operator used on a null value
+Another exception was thrown: Null check operator used on a null value
+Another exception was thrown: Null check operator used on a null value
+I/flutter (30800): 1-2025-12-21 10:16:24.073486 -- MqttConnection::onData
+I/flutter (30800): 1-2025-12-21 10:16:24.074838 -- MqttServerConnection::_onData - message received MQTTMessage of type MqttMessageType.connectAck
+I/flutter (30800): Header: MessageType = MqttMessageType.connectAck, Duplicate = false, Retain = false, Qos = MqttQos.atMostOnce, Size = 2
+I/flutter (30800): Connect Variable Header: SessionPresent={false}, ReturnCode={MqttConnectReturnCode.connectionAccepted}
+I/flutter (30800): 1-2025-12-21 10:16:24.075184 -- MqttServerConnection::_onData - message available event fired
+I/flutter (30800): 1-2025-12-21 10:16:24.075755 -- MqttConnectionHandlerBase::_connectAckProcessor
+I/flutter (30800): 1-2025-12-21 10:16:24.075825 -- MqttConnectionHandlerBase:_connectAckProcessor - state = connected
+I/flutter (30800): XYZ MQTT Connected successfully to 45.33.42.198:9735
+I/flutter (30800): 1-2025-12-21 10:16:24.075934 -- MqttConnectionHandlerBase:: cancelling connect timer
+I/flutter (30800): XYZ MQTT Provider: Connection state changed to: MqttConnectionState.connected
+I/flutter (30800): XYZ MQTT Provider: Connected, resubscribing to all topics
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to all topics after reconnection
+I/flutter (30800): XYZ MQTT Provider: Cleared 0 cached topic values
+I/flutter (30800): 1-2025-12-21 10:16:24.076302 -- SynchronousMqttServerConnectionHandler::internalConnect - post sleep, state = Connection status is connected with return code of connectionAccepted and a disconnection origin of none
+I/flutter (30800): 1-2025-12-21 10:16:24.076337 -- SynchronousMqttServerConnectionHandler::internalConnect exited with state Connection status is connected with return code of connectionAccepted and a disconnection origin of none
+I/flutter (30800): XYZ MQTT Connection established successfully
+I/flutter (30800): XYZ MQTT Provider: Service connect returned: true
+I/flutter (30800): XYZ MQTT Provider: Found dashboard with 4 widgets
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to widget topic: orben/thermostat
+I/flutter (30800): XYZ MQTT Subscribing to topic: orben/thermostat (QoS: 1)
+I/flutter (30800): XYZ MQTT Using native client for subscription
+I/flutter (30800): 1-2025-12-21 10:16:24.079270 -- MqttConnectionHandlerBase::sendMessage - MQTTMessage of type MqttMessageType.subscribe
+I/flutter (30800): Header: MessageType = MqttMessageType.subscribe, Duplicate = false, Retain = false, Qos = MqttQos.atLeastOnce, Size = 0
+I/flutter (30800): Subscribe Variable Header: MessageIdentifier={1}
+I/flutter (30800): Payload: Subscription [{1}]
+I/flutter (30800): {{ Topic={orben/thermostat}, Qos={MqttQos.atLeastOnce} }}
+I/flutter (30800): 
+I/flutter (30800): XYZ MQTT Subscription sent for topic: orben/thermostat
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to widget topic: orben/thermostat
+I/flutter (30800): XYZ MQTT Subscribing to topic: orben/thermostat (QoS: 1)
+I/flutter (30800): XYZ MQTT Using native client for subscription
+I/flutter (30800): XYZ MQTT Subscription sent for topic: orben/thermostat
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to widget topic: orben/lights/override
+I/flutter (30800): XYZ MQTT Subscribing to topic: orben/lights/override (QoS: 1)
+I/flutter (30800): XYZ MQTT Using native client for subscription
+I/flutter (30800): 1-2025-12-21 10:16:24.079917 -- MqttConnectionHandlerBase::sendMessage - MQTTMessage of type MqttMessageType.subscribe
+I/flutter (30800): Header: MessageType = MqttMessageType.subscribe, Duplicate = false, Retain = false, Qos = MqttQos.atLeastOnce, Size = 0
+I/flutter (30800): Subscribe Variable Header: MessageIdentifier={2}
+I/flutter (30800): Payload: Subscription [{1}]
+I/flutter (30800): {{ Topic={orben/lights/override}, Qos={MqttQos.atLeastOnce} }}
+I/flutter (30800): 
+I/flutter (30800): XYZ MQTT Subscription sent for topic: orben/lights/override
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to widget topic: orben/lights/override
+I/flutter (30800): XYZ MQTT Subscribing to topic: orben/lights/override (QoS: 1)
+I/flutter (30800): XYZ MQTT Using native client for subscription
+I/flutter (30800): XYZ MQTT Subscription sent for topic: orben/lights/override
+I/flutter (30800): XYZ MQTT Provider: Waiting 500ms for retained messages to arrive
+I/flutter (30800): XYZ MQTT Provider: Connection successful, saved config ID: MqttConfig{id: default, name: Machazat, host: 45.33.42.198, port: 9735}.id
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to all topics after reconnection
+I/flutter (30800): XYZ MQTT Provider: Cleared 0 cached topic values
+I/flutter (30800): XYZ MQTT Provider: Found dashboard with 4 widgets
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to widget topic: orben/thermostat
+I/flutter (30800): XYZ MQTT Subscribing to topic: orben/thermostat (QoS: 1)
+I/flutter (30800): XYZ MQTT Using native client for subscription
+I/flutter (30800): XYZ MQTT Subscription sent for topic: orben/thermostat
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to widget topic: orben/thermostat
+I/flutter (30800): XYZ MQTT Subscribing to topic: orben/thermostat (QoS: 1)
+I/flutter (30800): XYZ MQTT Using native client for subscription
+I/flutter (30800): XYZ MQTT Subscription sent for topic: orben/thermostat
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to widget topic: orben/lights/override
+I/flutter (30800): XYZ MQTT Subscribing to topic: orben/lights/override (QoS: 1)
+I/flutter (30800): XYZ MQTT Using native client for subscription
+I/flutter (30800): XYZ MQTT Subscription sent for topic: orben/lights/override
+I/flutter (30800): XYZ MQTT Provider: Resubscribing to widget topic: orben/lights/override
+I/flutter (30800): XYZ MQTT Subscribing to topic: orben/lights/override (QoS: 1)
+I/flutter (30800): XYZ MQTT Using native client for subscription
+I/flutter (30800): XYZ MQTT Subscription sent for topic: orben/lights/override
+I/flutter (30800): XYZ MQTT Provider: Waiting 500ms for retained messages to arrive
+I/flutter (30800): 1-2025-12-21 10:16:24.095587 -- MqttConnection::onData
+I/flutter (30800): 1-2025-12-21 10:16:24.096616 -- MqttServerConnection::_onData - message received MQTTMessage of type MqttMessageType.subscribeAck
+I/flutter (30800): Header: MessageType = MqttMessageType.subscribeAck, Duplicate = false, Retain = false, Qos = MqttQos.atMostOnce, Size = 3
+I/flutter (30800): SubscribeAck Variable Header: MessageIdentifier={1}
+I/flutter (30800): Payload: Qos grants [{1}]
+I/flutter (30800): {{ Grant={MqttQos.atLeastOnce} }}
+I/flutter (30800): 
+I/flutter (30800): 1-2025-12-21 10:16:24.097001 -- MqttServerConnection::_onData - message available event fired
+I/flutter (30800): 1-2025-12-21 10:16:24.097274 -- MqttConnectionHandlerBase::messageAvailable - message type is MqttMessageType.subscribeAck
+I/flutter (30800): XYZ MQTT Successfully subscribed to: orben/thermostat
+I/flutter (30800): 1-2025-12-21 10:16:24.114651 -- MqttConnection::onData
+I/flutter (30800): 1-2025-12-21 10:16:24.116057 -- MqttServerConnection::_onData - message received MQTTMessage of type MqttMessageType.publish
+I/flutter (30800): Header: MessageType = MqttMessageType.publish, Duplicate = false, Retain = true, Qos = MqttQos.atLeastOnce, Size = 24
+I/flutter (30800): Publish Variable Header: TopicName={orben/thermostat}, MessageIdentifier={1598}, VH Length={20}
+I/flutter (30800): Payload: {4 bytes={<54><53><46><53>
+I/flutter (30800): 1-2025-12-21 10:16:24.116445 -- MqttServerConnection::_onData - message available event fired
+I/flutter (30800): 1-2025-12-21 10:16:24.116512 -- MqttConnectionHandlerBase::messageAvailable - message type is MqttMessageType.publish
+I/flutter (30800): 1-2025-12-21 10:16:24.116988 -- PublishingManager::handlePublish - publish received from broker with topic orben/thermostat
+I/flutter (30800): 1-2025-12-21 10:16:24.117338 -- MqttConnectionHandlerBase::sendMessage - MQTTMessage of type MqttMessageType.publishAck
+I/flutter (30800): Header: MessageType = MqttMessageType.publishAck, Duplicate = false, Retain = false, Qos = MqttQos.atMostOnce, Size = 0
+I/flutter (30800): PublishAck Variable Header: MessageIdentifier={1598}
+I/flutter (30800): XYZ MQTT Received 1 message(s)
+I/flutter (30800): XYZ MQTT Provider: Received message on topic: orben/thermostat
+I/flutter (30800): XYZ MQTT Provider: Message payload: 65.5
+I/flutter (30800): 1-2025-12-21 10:16:24.136461 -- MqttConnection::onData
+I/flutter (30800): 1-2025-12-21 10:16:24.137127 -- MqttServerConnection::_onData - message received MQTTMessage of type MqttMessageType.subscribeAck
+I/flutter (30800): Header: MessageType = MqttMessageType.subscribeAck, Duplicate = false, Retain = false, Qos = MqttQos.atMostOnce, Size = 3
+I/flutter (30800): SubscribeAck Variable Header: MessageIdentifier={2}
+I/flutter (30800): Payload: Qos grants [{1}]
+I/flutter (30800): {{ Grant={MqttQos.atLeastOnce} }}
+I/flutter (30800): 
+I/flutter (30800): 1-2025-12-21 10:16:24.137256 -- MqttServerConnection::_onData - message available event fired
+I/flutter (30800): 1-2025-12-21 10:16:24.137366 -- MqttServerConnection::_onData - message received MQTTMessage of type MqttMessageType.publish
+I/flutter (30800): Header: MessageType = MqttMessageType.publish, Duplicate = false, Retain = true, Qos = MqttQos.atLeastOnce, Size = 26
+I/flutter (30800): Publish Variable Header: TopicName={orben/lights/override}, MessageIdentifier={1599}, VH Length={25}
+I/flutter (30800): Payload: {1 bytes={<49>
+I/flutter (30800): 1-2025-12-21 10:16:24.137439 -- MqttServerConnection::_onData - message available event fired
+I/flutter (30800): 1-2025-12-21 10:16:24.137502 -- MqttConnectionHandlerBase::messageAvailable - message type is MqttMessageType.subscribeAck
+I/flutter (30800): XYZ MQTT Successfully subscribed to: orben/lights/override
+I/flutter (30800): 1-2025-12-21 10:16:24.137614 -- MqttConnectionHandlerBase::messageAvailable - message type is MqttMessageType.publish
+I/flutter (30800): 1-2025-12-21 10:16:24.137648 -- PublishingManager::handlePublish - publish received from broker with topic orben/lights/override
+I/flutter (30800): 1-2025-12-21 10:16:24.137687 -- MqttConnectionHandlerBase::sendMessage - MQTTMessage of type MqttMessageType.publishAck
+I/flutter (30800): Header: MessageType = MqttMessageType.publishAck, Duplicate = false, Retain = false, Qos = MqttQos.atMostOnce, Size = 0
+I/flutter (30800): PublishAck Variable Header: MessageIdentifier={1599}
+I/flutter (30800): XYZ MQTT Received 1 message(s)
+I/flutter (30800): XYZ MQTT Provider: Received message on topic: orben/lights/override
+I/flutter (30800): XYZ MQTT Provider: Message payload: 1
+D/VRI[MainActivity](30800): onFocusEvent true
+D/InsetsController(30800): hide(ime(), fromIme=false)
+I/ImeTracker(30800): com.example.mqtt_dash:781b088b: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+W/VRI[MainActivity](30800): handleResized abandoned!
+W/WindowOnBackDispatcher(30800): sendCancelIfRunning: isInProgress=false callback=ImeCallback=ImeOnBackInvokedCallback@184204295 hash=110213840 Callback=android.window.IOnBackInvokedCallback$Stub$Proxy@7a2d5ce
+W/VRI[MainActivity](30800): handleResized abandoned!
+Syncing files to device CPH2655...                                  66ms
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on CPH2655 is available at: http://127.0.0.1:35359/YyGbpIWp9M8=/
+The Flutter DevTools debugger and profiler on CPH2655 is available at: http://127.0.0.1:35359/YyGbpIWp9M8=/devtools/?uri=ws://127.0.0.1:35359/YyGbpIWp9M8=/ws
+
+I/flutter (30800): XYZ MQTT Provider: Resubscription completed
+I/flutter (30800): XYZ MQTT Provider: Resubscription completed
+D/OplusScrollToTopManager(30800): com.example.mqtt_dash/com.example.mqtt_dash.MainActivity,This com.android.internal.policy.DecorView{de1ae5e V.E...... R....... 0,0-1080,2376 aid=0 alpha=1.0 viewInfo = }[MainActivity] change focus to true
+D/ProfileInstaller(30800): Installing profile for com.example.mqtt_dash
+D/VRI[MainActivity](30800): onFocusEvent false
+W/ample.mqtt_dash(30800): userfaultfd: MOVE ioctl seems unsupported: Connection timed out
+I/ample.mqtt_dash(30800): Background concurrent mark compact GC freed 33MB AllocSpace bytes, 6(156KB) LOS objects, 82% free, 2526KB/14MB, paused 1.762ms,8.025ms total 149.438ms
+D/OplusScrollToTopManager(30800): com.example.mqtt_dash/com.example.mqtt_dash.MainActivity,This com.android.internal.policy.DecorView{de1ae5e V.E...... R....... 0,0-1080,2376 aid=0 alpha=1.0 viewInfo = }[MainActivity] change focus to false
+D/VRI[MainActivity](30800): setWindowStopped stopped:true
+I/SurfaceView(30800): 186369333 surfaceDestroyed
+D/BufferQueueProducer(30800): [b1bc535 SurfaceView[com.example.mqtt_dash/com.example.mqtt_dash.MainActivity]#1(BLAST Consumer)1](id:785000000001,api:1,p:30800,c:30800) disconnect: api 1
+D/BufferQueueProducer(30800): [b1bc535 SurfaceView[com.example.mqtt_dash/com.example.mqtt_dash.MainActivity]#1(BLAST Consumer)1](id:785000000001,api:0,p:-1,c:30800) disconnect: api -1
+D/BLASTBufferQueue(30800): [b1bc535 SurfaceView[com.example.mqtt_dash/com.example.mqtt_dash.MainActivity]#1](f:0,a:1) destructor()
+D/BufferQueueConsumer(30800): [b1bc535 SurfaceView[com.example.mqtt_dash/com.example.mqtt_dash.MainActivity]#1(BLAST Consumer)1](id:785000000001,api:0,p:-1,c:30800) disconnect
+D/HWUI    (30800): RenderProxy::destroy: this=0xb40000749f3e9c00, mContext=0xb400007440929340
+D/HWUI    (30800): SkiaVulkanPipeline::setSurface: this=0xb4000074b6c86c00, surface=NULL
+D/BufferQueueProducer(30800): [VRI[MainActivity]#0(BLAST Consumer)0](id:785000000000,api:1,p:30800,c:30800) disconnect: api 1
+D/BLASTBufferQueue(30800): [VRI[MainActivity]#0](f:0,a:1) destructor()
+D/BufferQueueConsumer(30800): [VRI[MainActivity]#0(BLAST Consumer)0](id:785000000000,api:0,p:-1,c:30800) disconnect
+D/ViewRootImplExtImpl(30800): wrapConfigInfoIntoFlags rotation=0, smallestScreenWidthDp=360, residentWS=false, scenario=0, bounds=Rect(0, 0 - 1080, 2376), relayoutAsync=false, flags=0, newFlags=1245719808, title=com.example.mqtt_dash/com.example.mqtt_dash.MainActivity
+D/VRI[MainActivity](30800): relayoutWindow result, sizeChanged:false, surfaceControlChanged:true, transformHintChanged:false, mSurfaceSize:Point(1080, 2376), mLastSurfaceSize:Point(1080, 2376), mWidth:1080, mHeight:2376, requestedWidth:1080, requestedHeight:2376, transformHint:0, installOrientation:0, displayRotation:0, isSurfaceValid:false, attr.flag:-2122252032, tmpFrames:ClientWindowFrames{frame=[0,0][1080,2376] display=[0,0][1080,2376] parentFrame=[0,0][0,0]}, relayoutAsync:false, mSyncSeqId:0
+D/VRI[MainActivity](30800): dispatchAppVisibility visible:false mUpcomingWindowFocus:false
+W/WindowOnBackDispatcher(30800): sendCancelIfRunning: isInProgress=false callback=android.app.Activity$2@31444d1
+Lost connection to device.

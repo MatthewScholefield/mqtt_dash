@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/dashboard.dart';
 import '../models/dashboard_widget.dart';
 import '../core/config_service.dart';
+import '../core/logger.dart';
 
 class DashboardProvider extends ChangeNotifier {
   final ConfigService _configService = ConfigService();
@@ -22,7 +23,7 @@ class DashboardProvider extends ChangeNotifier {
       _dashboards = await _configService.loadDashboards();
       await _loadCurrentDashboard();
     } catch (e) {
-      print('Error loading dashboards: $e');
+      AppLogger.warning('Failed to load dashboards on initialization', e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -61,7 +62,7 @@ class DashboardProvider extends ChangeNotifier {
       await setCurrentDashboard(dashboard.id);
       notifyListeners();
     } catch (e) {
-      print('Error creating dashboard: $e');
+      AppLogger.warning('Failed to create dashboard', e);
     }
   }
 
@@ -80,7 +81,7 @@ class DashboardProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      print('Error updating dashboard: $e');
+      AppLogger.warning('Failed to update dashboard', e);
     }
   }
 
@@ -99,7 +100,7 @@ class DashboardProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      print('Error deleting dashboard: $e');
+      AppLogger.warning('Failed to delete dashboard', e);
     }
   }
 
@@ -109,7 +110,7 @@ class DashboardProvider extends ChangeNotifier {
       await _loadCurrentDashboard();
       notifyListeners();
     } catch (e) {
-      print('Error setting current dashboard: $e');
+      AppLogger.warning('Failed to set current dashboard', e);
     }
   }
 
@@ -120,7 +121,7 @@ class DashboardProvider extends ChangeNotifier {
       final updatedDashboard = _currentDashboard!.addWidget(widget);
       await updateDashboard(updatedDashboard);
     } catch (e) {
-      print('Error adding widget: $e');
+      AppLogger.warning('Failed to add widget', e);
     }
   }
 
@@ -131,7 +132,7 @@ class DashboardProvider extends ChangeNotifier {
       final updatedDashboard = _currentDashboard!.addWidget(widget);
       await updateDashboard(updatedDashboard);
     } catch (e) {
-      print('Error updating widget: $e');
+      AppLogger.warning('Failed to update widget', e);
     }
   }
 
@@ -142,7 +143,7 @@ class DashboardProvider extends ChangeNotifier {
       final updatedDashboard = _currentDashboard!.removeWidget(widgetId);
       await updateDashboard(updatedDashboard);
     } catch (e) {
-      print('Error removing widget: $e');
+      AppLogger.warning('Failed to remove widget', e);
     }
   }
 
@@ -151,7 +152,7 @@ class DashboardProvider extends ChangeNotifier {
       await _configService.initializeDefaults();
       await loadDashboards();
     } catch (e) {
-      print('Error initializing defaults: $e');
+      AppLogger.warning('Failed to initialize defaults', e);
     }
   }
 }

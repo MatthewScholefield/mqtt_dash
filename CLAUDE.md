@@ -68,8 +68,6 @@ The application follows a clean architecture pattern with clear separation of co
 ## Key Technical Details
 
 ### MQTT Integration
-- Supports both WebSocket (web) and TCP (native) connections
-- Platform-specific implementations in `core/mqtt_service.dart`
 - Automatic reconnection with resubscription to topics
 - Authentication support (username/password)
 
@@ -79,17 +77,10 @@ The application follows a clean architecture pattern with clear separation of co
 - Default configurations for first-time users
 - Stores dashboard layouts and MQTT settings
 
-### Cross-Platform Considerations
-- Web platform uses WebSocket MQTT connection
-- Native platforms use TCP MQTT connection
-- Conditional imports based on platform
-- Responsive design for different screen sizes
-
 ## Development Workflow
 
 1. **After model changes**: Run `flutter pub run build_runner build` to regenerate serialization code
 2. **Testing**: Use Flutter's built-in testing framework
-3. **Platform testing**: Test on web and native platforms due to MQTT implementation differences
 4. **State management**: All state updates go through Provider instances
 
 ## Code Generation
@@ -106,12 +97,4 @@ Each widget type requires:
 - MQTT topic mapping for different states
 - Icon configuration for visual feedback
 - Position and size in the grid layout
-- State-based behavior (on/off/unknown)
 
-## Platform-Specific Notes
-
-- **Web**: MQTT connections use WebSocket protocol
-- **Native**: MQTT connections use TCP protocol
-- **All platforms**: State management and UI are shared
-
-The codebase is well-structured for adding new widget types, extending MQTT functionality, or enhancing the dashboard features.

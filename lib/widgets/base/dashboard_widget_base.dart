@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../models/dashboard_widget.dart';
-import '../../providers/mqtt_provider.dart';
 
 abstract class DashboardWidgetBase extends StatelessWidget {
   final DashboardWidget widgetConfig;
@@ -8,6 +7,7 @@ abstract class DashboardWidgetBase extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final bool isEditing;
+  final bool wrapWithCard;
 
   const DashboardWidgetBase({
     super.key,
@@ -16,6 +16,7 @@ abstract class DashboardWidgetBase extends StatelessWidget {
     this.onTap,
     this.onLongPress,
     this.isEditing = false,
+    this.wrapWithCard = true,
   });
 
   Widget buildWidget(BuildContext context, MqttWidgetState state);
@@ -54,6 +55,10 @@ abstract class DashboardWidgetBase extends StatelessWidget {
     final content = isEditing
         ? buildEditingOverlay(context)
         : buildWidget(context, currentState ?? MqttWidgetState.unknown);
+
+    if (!wrapWithCard) {
+      return content;
+    }
 
     return Card(
       elevation: isEditing ? 8 : 2,

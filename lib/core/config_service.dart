@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/mqtt_config.dart';
 import '../models/dashboard.dart';
+import 'logger.dart';
 
 class ConfigService {
   static const String _mqttConfigsKey = 'mqtt_configs';
   static const String _dashboardsKey = 'dashboards';
   static const String _currentDashboardKey = 'current_dashboard';
+  static const String _lastMqttConfigKey = 'last_mqtt_config_id';
+  static const String _autoConnectEnabledKey = 'auto_connect_enabled';
 
   Future<void> saveMqttConfigs(List<MqttConfig> configs) async {
     final prefs = await SharedPreferences.getInstance();
@@ -26,7 +29,7 @@ class ConfigService {
       final configsJson = jsonDecode(configsJsonString) as List;
       return configsJson.map((json) => MqttConfig.fromJson(json)).toList();
     } catch (e) {
-      print('Error loading MQTT configs: $e');
+      AppLogger.warning('Failed to decode MQTT configs from storage', e);
       return [];
     }
   }
@@ -68,7 +71,7 @@ class ConfigService {
       final dashboardsJson = jsonDecode(dashboardsJsonString) as List;
       return dashboardsJson.map((json) => Dashboard.fromJson(json)).toList();
     } catch (e) {
-      print('Error loading dashboards: $e');
+      AppLogger.warning('Failed to decode dashboards from storage', e);
       return [];
     }
   }
@@ -176,5 +179,31 @@ class ConfigService {
   Future<void> initializeDefaults() async {
     await createDefaultMqttConfigIfNeeded();
     await createDefaultDashboardIfNeeded();
+  }
+
+  // Auto-connection and last config tracking methods
+  Future<void> setLastMqttConfigId(String? configId) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (configId == null) {
+      await prefs.remove(_lastMqttConfigKey);
+    } else {
+      await prefs.setString(_lastMqttConfigKey, configId);
+    }
+  }
+
+  Future<String?> getLastMqttConfigId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_lastMqttConfigKey);
+  }
+
+  Future<void> setAutoConnectEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_autoConnectEnabledKey, enabled);
+  }
+
+  Future<bool> getAutoConnectEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Default to true if not set
+    return prefs.getBool(_autoConnectEnabledKey) ?? true;
   }
 }

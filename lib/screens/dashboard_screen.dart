@@ -6,7 +6,9 @@ import '../models/dashboard_widget.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/mqtt_provider.dart';
 import '../widgets/button_widget.dart';
+import '../widgets/sensor_display_widget.dart';
 import '../widgets/slider_widget.dart';
+import '../widgets/toggle_switch_widget.dart';
 import 'widget_settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -31,16 +33,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
     final mqttProvider = Provider.of<MqttProvider>(context, listen: false);
 
+    // Step 1: Initialize configurations
     await dashboardProvider.initializeDefaults();
 
-    final currentDashboard = dashboardProvider.currentDashboard;
-    if (currentDashboard != null && currentDashboard.widgets.isNotEmpty) {
-      for (final widget in currentDashboard.widgets) {
-        mqttProvider.subscribeToTopic(widget.topic, qos: widget.qos);
-      }
+    // Step 2: Attempt auto-connection
+    await mqttProvider.autoConnect();
+
+    // Step 3: If connected, refresh subscriptions to get retained messages
+    if (mqttProvider.connectionState == MqttConnectionState.connected) {
+      await mqttProvider.refreshSubscriptions();
+    }
+
+    // Step 4: Force UI update to populate initial states
+    if (mounted) {
+      setState(() {});
     }
   }
 
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -189,30 +199,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildWidgetCard(DashboardWidget widgetConfig, int index) {
     switch (widgetConfig.type) {
       case WidgetType.button:
-        return Consumer<MqttProvider>(
-          builder: (context, mqttProvider, child) {
-            final topicValue = mqttProvider.getTopicValue(widgetConfig.topic);
-            final currentState = topicValue != null
-                ? widgetConfig.getStateFromPayload(topicValue)
-                : null;
-
-            return ButtonWidget(
-              widgetConfig: widgetConfig,
-              currentState: currentState,
-              onTap: () => _handleWidgetTap(widgetConfig, mqttProvider),
-              onLongPress: _isEditing ? () => _showWidgetOptions(widgetConfig) : null,
-              isEditing: _isEditing,
-            );
-          },
+        return InteractiveButtonWidget(
+          widgetConfig: widgetConfig,
         );
       case WidgetType.slider:
         return InteractiveSliderWidget(widgetConfig: widgetConfig);
-      case WidgetType.textDisplay:
       case WidgetType.sensorDisplay:
+        return InteractiveSensorDisplayWidget(widgetConfig: widgetConfig);
       case WidgetType.toggleSwitch:
-      default:
+        return InteractiveToggleSwitchWidget(widgetConfig: widgetConfig);
+      case WidgetType.textDisplay:
         return Card(
-          child: Container(
+          child: SizedBox(
             height: 100,
             child: Center(
               child: Text(
@@ -225,89 +223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  void _handleWidgetTap(DashboardWidget widgetConfig, MqttProvider mqttProvider) {
-    if (_isEditing) {
-      _showWidgetOptions(widgetConfig);
-      return;
-    }
-
-    if (widgetConfig.type == WidgetType.button) {
-      final currentStateValue = mqttProvider.getTopicValue(widgetConfig.topic);
-      final currentState = currentStateValue != null
-          ? widgetConfig.getStateFromPayload(currentStateValue)
-          : MqttWidgetState.off;
-
-      final newState = currentState == MqttWidgetState.on ? MqttWidgetState.off : MqttWidgetState.on;
-      final payload = widgetConfig.getPayloadForState(newState);
-
-      mqttProvider.publishMessage(
-        widgetConfig.topic,
-        payload,
-        qos: widgetConfig.qos,
-        retain: widgetConfig.retain,
-      );
-    }
-  }
-
-  void _showWidgetOptions(DashboardWidget widget) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Edit Widget'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => WidgetSettingsScreen(widget: widget),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Delete Widget', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.of(context).pop();
-                _confirmDeleteWidget(widget);
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _confirmDeleteWidget(DashboardWidget widget) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Widget'),
-        content: Text('Are you sure you want to delete "${widget.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
-              dashboardProvider.removeWidget(widget.id);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
+  
   void _showAddWidgetDialog() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -340,20 +256,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                mqttProvider.connectionState == MqttConnectionState.connected
-                    ? Icons.check_circle
-                    : Icons.error,
-                color: mqttProvider.connectionState == MqttConnectionState.connected
-                    ? Colors.green
-                    : Colors.red,
+                _getConnectionStatusIcon(mqttProvider),
+                color: _getConnectionStatusColor(mqttProvider),
                 size: 48,
               ),
               const SizedBox(height: 16),
               Text(
-                _getConnectionStatusText(mqttProvider.connectionState),
+                _getConnectionStatusText(mqttProvider.connectionState, mqttProvider),
                 style: const TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 8),
+              Text(
+                'Auto-connect: ${mqttProvider.autoConnectEnabled ? "Enabled" : "Disabled"}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              if (mqttProvider.lastConnectedConfigId != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Last used config ID: ${mqttProvider.lastConnectedConfigId}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
               if (mqttProvider.errorMessage != null) ...[
                 const SizedBox(height: 16),
                 Text(
@@ -369,6 +299,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Close'),
             ),
+            if (mqttProvider.connectionState != MqttConnectionState.connected)
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  // Attempt to reconnect to last used config
+                  await mqttProvider.connectToLastUsedConfig();
+                },
+                child: const Text('Retry'),
+              ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -382,7 +321,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  String _getConnectionStatusText(MqttConnectionState? state) {
+  String _getConnectionStatusText(MqttConnectionState? state, MqttProvider mqttProvider) {
     if (state == null) return 'Unknown connection state';
 
     switch (state) {
@@ -396,6 +335,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return 'Connection faulted';
       default:
         return 'Unknown connection state';
+    }
+  }
+
+  IconData _getConnectionStatusIcon(MqttProvider mqttProvider) {
+    final state = mqttProvider.connectionState;
+
+    switch (state) {
+      case MqttConnectionState.connected:
+        return Icons.check_circle; // Success icon for healthy connection
+      case MqttConnectionState.connecting:
+        return Icons.sync; // Sync icon for connecting
+      case MqttConnectionState.disconnected:
+      case MqttConnectionState.faulted:
+        return Icons.error; // Error icon
+      default:
+        return Icons.help_outline; // Unknown state
+    }
+  }
+
+  Color _getConnectionStatusColor(MqttProvider mqttProvider) {
+    final state = mqttProvider.connectionState;
+
+    switch (state) {
+      case MqttConnectionState.connected:
+        return Colors.green; // Green for healthy connection
+      case MqttConnectionState.connecting:
+        return Colors.blue; // Blue for connecting
+      case MqttConnectionState.disconnected:
+      case MqttConnectionState.faulted:
+        return Colors.red; // Red for disconnected/error state
+      default:
+        return Colors.grey; // Grey for unknown state
     }
   }
 }

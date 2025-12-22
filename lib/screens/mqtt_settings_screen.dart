@@ -38,9 +38,11 @@ class _MqttSettingsScreenState extends State<MqttSettingsScreen> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading configs: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading configs: $e')),
+        );
+      }
     }
   }
 
@@ -68,13 +70,17 @@ class _MqttSettingsScreenState extends State<MqttSettingsScreen> {
       try {
         await _configService.deleteMqttConfig(config.id);
         await _loadConfigs();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Configuration deleted')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Configuration deleted')),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting config: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting config: $e')),
+          );
+        }
       }
     }
   }
@@ -275,21 +281,25 @@ class _MqttSettingsScreenState extends State<MqttSettingsScreen> {
   }
 
   void _showAddConfigDialog() {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
       builder: (context) => MqttConfigDialog(
         onSave: (config) async {
           await _configService.saveMqttConfig(config);
           await _loadConfigs();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Configuration saved')),
-          );
+          if (mounted) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Configuration saved')),
+            );
+          }
         },
       ),
     );
   }
 
   void _showEditConfigDialog(MqttConfig config) {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
       builder: (context) => MqttConfigDialog(
@@ -297,9 +307,11 @@ class _MqttSettingsScreenState extends State<MqttSettingsScreen> {
         onSave: (config) async {
           await _configService.saveMqttConfig(config);
           await _loadConfigs();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Configuration updated')),
-          );
+          if (mounted) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Configuration updated')),
+            );
+          }
         },
       ),
     );

@@ -45,6 +45,7 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
     'power_off',
     'lightbulb',
     'toggle_on',
+    'toggle_off',
     'button',
     'lock',
     'fan',
@@ -52,6 +53,8 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
     'speaker',
     'thermostat',
     'sensor',
+    'switch',
+    'electric_switch',
   ];
 
   @override
@@ -194,7 +197,7 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<WidgetType>(
-              value: _selectedType,
+              initialValue: _selectedType,
               decoration: const InputDecoration(
                 labelText: 'Widget Type',
                 border: OutlineInputBorder(),
@@ -372,7 +375,7 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: _selectedOnIcon,
+                    initialValue: _selectedOnIcon,
                     decoration: const InputDecoration(
                       labelText: 'ON Icon',
                       border: OutlineInputBorder(),
@@ -397,7 +400,7 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: _selectedOffIcon,
+                    initialValue: _selectedOffIcon,
                     decoration: const InputDecoration(
                       labelText: 'OFF Icon',
                       border: OutlineInputBorder(),
@@ -432,7 +435,7 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<int>(
-              value: _qos,
+              initialValue: _qos,
               decoration: const InputDecoration(
                 labelText: 'QoS Level',
                 border: OutlineInputBorder(),
@@ -499,6 +502,7 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
         'power': MdiIcons.power,
         'lightbulb': MdiIcons.lightbulb,
         'toggle_on': MdiIcons.toggleSwitch,
+        'toggle_off': MdiIcons.toggleSwitchOff,
         'button': MdiIcons.radioboxMarked,
         'lock': MdiIcons.lock,
         'fan': MdiIcons.fan,
@@ -507,6 +511,8 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen> {
         'thermostat': MdiIcons.thermostat,
         'sensor': MdiIcons.gauge,
         'power_off': MdiIcons.powerOff,
+        'switch': MdiIcons.toggleSwitch,
+        'electric_switch': MdiIcons.electricSwitch,
       };
       return iconMap[iconName.toLowerCase()] ?? MdiIcons.helpCircle;
     }

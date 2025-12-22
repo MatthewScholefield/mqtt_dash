@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import '../models/dashboard_widget.dart';
 import '../providers/mqtt_provider.dart';
+import '../utils/local_state_tracker.dart';
 import 'base/dashboard_widget_base.dart';
 
 class ButtonWidget extends DashboardWidgetBase {
@@ -13,12 +14,12 @@ class ButtonWidget extends DashboardWidgetBase {
     super.onTap,
     super.onLongPress,
     super.isEditing,
+    super.wrapWithCard,
   });
 
   @override
   Widget buildWidget(BuildContext context, MqttWidgetState state) {
     final theme = Theme.of(context);
-    final mqttProvider = Provider.of<MqttProvider>(context, listen: false);
 
     Color backgroundColor;
     Color iconColor;
@@ -36,7 +37,6 @@ class ButtonWidget extends DashboardWidgetBase {
         iconName = widgetConfig.icon.offIcon;
         break;
       case MqttWidgetState.unknown:
-      default:
         backgroundColor = theme.colorScheme.surface;
         iconColor = theme.colorScheme.onSurface.withValues(alpha: 0.5);
         iconName = widgetConfig.icon.unknownIcon;
@@ -54,7 +54,7 @@ class ButtonWidget extends DashboardWidgetBase {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -137,7 +137,24 @@ class InteractiveButtonWidget extends StatefulWidget {
 }
 
 class _InteractiveButtonWidgetState extends State<InteractiveButtonWidget> {
-  MqttWidgetState _currentState = MqttWidgetState.off;
+  late LocalStateTracker<MqttWidgetState> _stateTracker;
+
+  @override
+  void initState() {
+    super.initState();
+    _stateTracker = LocalStateTracker<MqttWidgetState>(
+      initialValue: MqttWidgetState.off,
+      remoteValue: MqttWidgetState.off,
+      equals: (a, b) => a == b,
+      debugTag: 'Button-${widget.widgetConfig.name}',
+    );
+  }
+
+  @override
+  void dispose() {
+    _stateTracker.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,22 +162,68 @@ class _InteractiveButtonWidgetState extends State<InteractiveButtonWidget> {
       builder: (context, mqttProvider, child) {
         final topicValue = mqttProvider.getTopicValue(widget.widgetConfig.topic);
 
+        // Always track remote state
         if (topicValue != null) {
-          _currentState = widget.widgetConfig.getStateFromPayload(topicValue);
+          final remoteState = widget.widgetConfig.getStateFromPayload(topicValue);
+          _stateTracker.updateRemoteValue(remoteState);
+        } else {
+          _stateTracker.clearRemoteState();
         }
 
-        return ButtonWidget(
-          widgetConfig: widget.widgetConfig,
-          currentState: _currentState,
-          onTap: () => _toggleButton(mqttProvider),
-          onLongPress: () => _showWidgetSettings(context),
+        return Card(
+          elevation: 2,
+          margin: EdgeInsets.zero,
+          child: InkWell(
+            onTap: () => _toggleButton(mqttProvider),
+            onLongPress: () => _showWidgetSettings(context),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              child: Stack(
+                children: [
+                  Center(
+                  child: ButtonWidget(
+                    widgetConfig: widget.widgetConfig,
+                    currentState: _stateTracker.localValue,
+                    onTap: () => _toggleButton(mqttProvider),
+                    onLongPress: () => _showWidgetSettings(context),
+                    wrapWithCard: false,
+                  ),
+                ),
+                  // Show orange indicator when local state differs from server state
+                  if (_stateTracker.isDirty)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withValues(alpha: 0.3),
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
   void _toggleButton(MqttProvider mqttProvider) {
-    final newState = _currentState == MqttWidgetState.on ? MqttWidgetState.off : MqttWidgetState.on;
+    final newState = _stateTracker.localValue == MqttWidgetState.on
+        ? MqttWidgetState.off
+        : MqttWidgetState.on;
     final payload = widget.widgetConfig.getPayloadForState(newState);
 
     mqttProvider.publishMessage(
@@ -170,9 +233,8 @@ class _InteractiveButtonWidgetState extends State<InteractiveButtonWidget> {
       retain: widget.widgetConfig.retain,
     );
 
-    setState(() {
-      _currentState = newState;
-    });
+    _stateTracker.updateLocalValue(newState);
+    setState(() {});
   }
 
   void _showWidgetSettings(BuildContext context) {
