@@ -228,10 +228,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   int _getCrossAxisCount(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth > 1200) return 6;
-    if (screenWidth > 800) return 4;
-    if (screenWidth > 600) return 3;
-    return 2;
+    // Account for padding (16 total) and minimum spacing between columns
+    const padding = 16.0;
+    const minSpacing = 8.0;
+
+    // Calculate max columns that won't cause negative width
+    int calculateMaxColumns() {
+      for (int cols in [6, 4, 3, 2]) {
+        final totalSpacing = (cols - 1) * minSpacing;
+        final availableWidth = screenWidth - padding - totalSpacing;
+        if (availableWidth / cols > 0) {
+          return cols;
+        }
+      }
+      return 1; // Fallback to single column
+    }
+
+    final maxColumns = calculateMaxColumns();
+
+    // Use responsive breakpoints but respect maxColumns
+    if (screenWidth > 1200) return maxColumns < 6 ? maxColumns : 6;
+    if (screenWidth > 800) return maxColumns < 4 ? maxColumns : 4;
+    if (screenWidth > 600) return maxColumns < 3 ? maxColumns : 3;
+    return maxColumns < 2 ? maxColumns : 2;
   }
 
   Widget _buildWidgetCard(DashboardWidget widgetConfig, int index) {
