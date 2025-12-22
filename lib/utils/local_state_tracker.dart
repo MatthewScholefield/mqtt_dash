@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import '../models/dashboard_widget.dart';
 
 /// Generic state management utility for MQTT widgets
@@ -9,13 +10,12 @@ import '../models/dashboard_widget.dart';
 /// Features:
 /// - Always tracks remote state (can be null if undefined/disconnected)
 /// - Always provides local state for rendering
-/// - Timer-based sync from local to remote state
+/// - Auto-sync from remote to local when remote updates
 /// - Dirty state detection for UI indicators
 class LocalStateTracker<T> {
   T? _remoteValue;
   T _localValue;
   Timer? _syncTimer;
-  final Duration _syncDelay;
 
   // Equality function for comparing values
   final bool Function(T, T) _equals;
@@ -29,13 +29,11 @@ class LocalStateTracker<T> {
   LocalStateTracker({
     required T initialValue,
     required T? remoteValue,
-    Duration syncDelay = const Duration(milliseconds: 500),
     required bool Function(T, T) equals,
     this.debugTag = '',
     VoidCallback? onStateUpdated,
   }) : _localValue = initialValue,
        _remoteValue = remoteValue,
-       _syncDelay = syncDelay,
        _equals = equals,
        _onStateUpdated = onStateUpdated;
 
@@ -55,18 +53,16 @@ class LocalStateTracker<T> {
   /// Update remote state (call this when MQTT messages arrive)
   void updateRemoteValue(T? newValue) {
     if (kDebugMode && debugTag.isNotEmpty) {
-      debugPrint('[$debugTag] Remote value updated: $newValue (hasTimer: ${_syncTimer != null})');
+      debugPrint('[$debugTag] Remote value updated: $newValue');
     }
     _remoteValue = newValue;
 
-    // Only sync local to remote if no timer is active
-    // This prevents remote updates from overriding user interactions
-    if (_syncTimer == null && newValue != null && !_equals(_localValue, newValue)) {
-      debugPrint('[$debugTag] Auto-syncing local to remote (no timer active): $newValue');
+    // Always sync local to remote if values differ
+    // This ensures the UI reflects the latest confirmed remote state
+    if (newValue != null && !_equals(_localValue, newValue)) {
+      debugPrint('[$debugTag] Auto-syncing local to remote: $newValue');
       _localValue = newValue;
-      _onStateUpdated?.call(); // Trigger UI update
-    } else if (_syncTimer != null) {
-      debugPrint('[$debugTag] Not syncing - timer active (user interaction in progress)');
+      _notifyStateUpdated();
     }
   }
 
@@ -77,29 +73,7 @@ class LocalStateTracker<T> {
     }
     _cancelSyncTimer();
     _localValue = newValue;
-    _onStateUpdated?.call(); // Trigger UI update
-  }
-
-  /// Start timer to sync local state back to remote state
-  void startSyncToRemote() {
-    _cancelSyncTimer();
-    _syncTimer = Timer(_syncDelay, () {
-      if (kDebugMode && debugTag.isNotEmpty) {
-        debugPrint('[$debugTag] Sync timer fired');
-      }
-      _syncToRemoteIfAvailable();
-      _syncTimer = null;
-    });
-  }
-
-  /// Cancel any pending sync
-  void cancelSync() {
-    _cancelSyncTimer();
-  }
-
-  /// Force immediate sync to remote value if available
-  void syncToRemoteNow() {
-    _syncToRemoteIfAvailable();
+    _notifyStateUpdated();
   }
 
   /// Clear remote state (call on disconnect)
@@ -110,17 +84,18 @@ class LocalStateTracker<T> {
     _remoteValue = null;
   }
 
-  void _syncToRemoteIfAvailable() {
-    final remote = _remoteValue;
-    if (remote != null) {
-      if (kDebugMode && debugTag.isNotEmpty) {
-        debugPrint('[$debugTag] Syncing local to remote: $remote');
-      }
-      _localValue = remote;
-      _onStateUpdated?.call(); // Trigger UI update
-    } else {
-      if (kDebugMode && debugTag.isNotEmpty) {
-        debugPrint('[$debugTag] No remote value available - keeping local value');
+  void _notifyStateUpdated() {
+    final callback = _onStateUpdated;
+    if (callback != null) {
+      // Check if we're currently in a build phase
+      if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+        // We're in a build phase, use post-frame callback
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          callback();
+        });
+      } else {
+        // Safe to call directly
+        callback();
       }
     }
   }

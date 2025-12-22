@@ -67,13 +67,8 @@ class _InteractiveSliderWidgetState extends State<InteractiveSliderWidget> {
       debugTag: 'Slider-${widget.widgetConfig.name}',
       onStateUpdated: () {
         if (mounted) {
-          debugPrint('[Slider-${widget.widgetConfig.name}] State tracker callback - scheduling setState');
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              debugPrint('[Slider-${widget.widgetConfig.name}] PostFrame callback - calling setState');
-              setState(() {});
-            }
-          });
+          debugPrint('[Slider-${widget.widgetConfig.name}] State tracker callback - calling setState');
+          setState(() {});
         }
       },
     );
@@ -99,9 +94,6 @@ class _InteractiveSliderWidgetState extends State<InteractiveSliderWidget> {
         value,
       );
     }
-
-    // Start timer to sync local state with remote state
-    _stateTracker.startSyncToRemote();
   }
 
   void _setLocalValue(double value) {
