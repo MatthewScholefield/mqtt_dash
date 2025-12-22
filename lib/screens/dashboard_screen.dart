@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import '../models/dashboard.dart';
 import '../models/dashboard_widget.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/mqtt_provider.dart';
@@ -29,6 +30,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _initializeDashboard() async {
     final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
     final mqttProvider = Provider.of<MqttProvider>(context, listen: false);
@@ -36,13 +42,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Step 1: Initialize configurations
     await dashboardProvider.initializeDefaults();
 
-    // Step 2: Attempt auto-connection
-    await mqttProvider.autoConnect();
-
-    // Step 3: If connected, refresh subscriptions to get retained messages
-    if (mqttProvider.connectionState == MqttConnectionState.connected) {
-      await mqttProvider.refreshSubscriptions();
+    // Step 2: Set current dashboard on mqttProvider
+    final currentDashboard = dashboardProvider.currentDashboard;
+    if (currentDashboard != null) {
+      mqttProvider.setCurrentDashboard(currentDashboard);
     }
+
+    // Step 3: Attempt auto-connection to all configured brokers
+    await mqttProvider.autoConnect();
 
     // Step 4: Force UI update to populate initial states
     if (mounted) {
@@ -71,60 +78,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
 
             // Show dropdown when there are multiple dashboards
-            return Expanded(
-              child: DropdownButton<String>(
-                value: currentDashboard?.id,
-                underline: const SizedBox(), // Hide the underline
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 20,
-                ),
-                dropdownColor: Theme.of(context).colorScheme.primary,
-                isDense: true, // Make the dropdown more compact
-                isExpanded: true, // Allow dropdown to expand to available space
-                selectedItemBuilder: (BuildContext context) {
-                  // Custom builder for selected item to ensure truncation
-                  return dashboardProvider.dashboards.map((dashboard) {
-                    return Text(
-                      dashboard.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: _AnimatedDashboardSelector(
+                currentDashboard: currentDashboard,
+                dashboards: dashboardProvider.dashboards,
+                onDashboardSelected: (dashboardId) async {
+                  final selectedDashboard = dashboardProvider.dashboards.firstWhere((d) => d.id == dashboardId);
+                  final messenger = ScaffoldMessenger.of(context);
+                  final mqttProvider = Provider.of<MqttProvider>(context, listen: false);
+                  await dashboardProvider.setCurrentDashboard(dashboardId);
+                  if (mounted) {
+                    mqttProvider.setCurrentDashboard(selectedDashboard);
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Switched to ${selectedDashboard.name}'),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     );
-                  }).toList();
-                },
-                items: dashboardProvider.dashboards.map((dashboard) {
-                  return DropdownMenuItem<String>(
-                    value: dashboard.id,
-                    child: Text(
-                      dashboard.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? dashboardId) async {
-                  if (dashboardId != null && dashboardId != currentDashboard?.id) {
-                    final selectedDashboard = dashboardProvider.dashboards.firstWhere((d) => d.id == dashboardId);
-                    final messenger = ScaffoldMessenger.of(context);
-                    await dashboardProvider.setCurrentDashboard(dashboardId);
-                    if (mounted) {
-                      messenger.showSnackBar(
-                        SnackBar(
-                          content: Text('Switched to ${selectedDashboard.name}'),
-                        ),
-                      );
-                    }
                   }
                 },
               ),
@@ -132,10 +102,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         ),
         actions: [
-          Consumer<MqttProvider>(
-            builder: (context, mqttProvider, child) {
+          Consumer2<MqttProvider, DashboardProvider>(
+            builder: (context, mqttProvider, dashboardProvider, child) {
+              final isConnected = mqttProvider.isCurrentConnected;
               return IconButton(
-                icon: mqttProvider.connectionState == MqttConnectionState.connected
+                icon: isConnected
                     ? const Icon(Icons.wifi, color: Colors.green)
                     : const Icon(Icons.wifi_off, color: Colors.red),
                 onPressed: () => _showConnectionStatus(context),
@@ -316,124 +287,328 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _showConnectionStatus(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => Consumer<MqttProvider>(
-        builder: (context, mqttProvider, child) => AlertDialog(
-          title: const Text('Connection Status'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                _getConnectionStatusIcon(mqttProvider),
-                color: _getConnectionStatusColor(mqttProvider),
-                size: 48,
+      builder: (context) => Consumer2<MqttProvider, DashboardProvider>(
+        builder: (context, mqttProvider, dashboardProvider, child) {
+          final currentDashboard = dashboardProvider.currentDashboard;
+          final currentConfigId = currentDashboard?.mqttConfigId ?? '';
+          final currentState = mqttProvider.currentConnectionState;
+          final currentError = mqttProvider.currentErrorMessage;
+
+          return AlertDialog(
+            title: const Text('Connection Status'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Current dashboard status
+                  if (currentDashboard != null && currentConfigId.isNotEmpty) ...[
+                    _buildConnectionStatusCard(
+                      context: context,
+                      title: 'Current Dashboard: ${currentDashboard.name}',
+                      configId: currentConfigId,
+                      state: currentState,
+                      errorMessage: currentError,
+                      isCurrent: true,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // All connections status
+                  const Text(
+                    'All MQTT Connections',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (mqttProvider.connectionStates.isEmpty)
+                    const Text(
+                      'No connections configured',
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  else
+                    ...mqttProvider.connectionStates.entries.map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: _buildConnectionStatusCard(
+                          context: context,
+                          title: 'Config: ${entry.key}',
+                          configId: entry.key,
+                          state: entry.value,
+                          errorMessage: mqttProvider.errorMessages[entry.key],
+                          isCurrent: entry.key == currentConfigId,
+                        ),
+                      );
+                    }),
+
+                  const SizedBox(height: 16),
+
+                  // Auto-connect status
+                  Text(
+                    'Auto-connect: ${mqttProvider.autoConnectEnabled ? "Enabled" : "Disabled"}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                _getConnectionStatusText(mqttProvider.connectionState, mqttProvider),
-                style: const TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Auto-connect: ${mqttProvider.autoConnectEnabled ? "Enabled" : "Disabled"}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
+              if (currentState != MqttConnectionState.connected && currentConfigId.isNotEmpty)
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await mqttProvider.connectToCurrentDashboardBroker();
+                  },
+                  child: const Text('Retry'),
                 ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushNamed('/mqtt_settings');
+                },
+                child: const Text('Settings'),
               ),
-              if (mqttProvider.lastConnectedConfigId != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'Last used config ID: ${mqttProvider.lastConnectedConfigId}',
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildConnectionStatusCard({
+    required BuildContext context,
+    required String title,
+    required String configId,
+    required MqttConnectionState? state,
+    required String? errorMessage,
+    required bool isCurrent,
+  }) {
+    final color = _getConnectionStatusColor(state);
+    final icon = _getConnectionStatusIcon(state);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isCurrent ? color : Colors.grey.shade300,
+          width: isCurrent ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
+                    fontSize: 14,
+                    fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
-              ],
-              if (mqttProvider.errorMessage != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  mqttProvider.errorMessage!,
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
+              ),
+              if (isCurrent)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Current',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ],
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-            if (mqttProvider.connectionState != MqttConnectionState.connected)
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  // Attempt to reconnect to last used config
-                  await mqttProvider.connectToLastUsedConfig();
-                },
-                child: const Text('Retry'),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.bolt, color: color, size: 16),
+              const SizedBox(width: 4),
+              Text(
+                _getConnectionStatusText(state),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                ),
               ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushNamed('/mqtt_settings');
-              },
-              child: const Text('Settings'),
+            ],
+          ),
+          if (errorMessage != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              errorMessage,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _getConnectionStatusText(MqttConnectionState? state) {
+    switch (state) {
+      case MqttConnectionState.connected:
+        return 'Connected';
+      case MqttConnectionState.connecting:
+        return 'Connecting...';
+      case MqttConnectionState.disconnected:
+        return 'Disconnected';
+      case MqttConnectionState.faulted:
+        return 'Connection faulted';
+      default:
+        return 'Unknown state';
+    }
+  }
+
+  IconData _getConnectionStatusIcon(MqttConnectionState? state) {
+    switch (state) {
+      case MqttConnectionState.connected:
+        return Icons.check_circle;
+      case MqttConnectionState.connecting:
+        return Icons.sync;
+      case MqttConnectionState.disconnected:
+      case MqttConnectionState.faulted:
+        return Icons.error;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  Color _getConnectionStatusColor(MqttConnectionState? state) {
+    switch (state) {
+      case MqttConnectionState.connected:
+        return Colors.green;
+      case MqttConnectionState.connecting:
+        return Colors.blue;
+      case MqttConnectionState.disconnected:
+      case MqttConnectionState.faulted:
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+}
+
+class _AnimatedDashboardSelector extends StatefulWidget {
+  final Dashboard? currentDashboard;
+  final List<Dashboard> dashboards;
+  final Function(String) onDashboardSelected;
+
+  const _AnimatedDashboardSelector({
+    required this.currentDashboard,
+    required this.dashboards,
+    required this.onDashboardSelected,
+  });
+
+  @override
+  State<_AnimatedDashboardSelector> createState() => _AnimatedDashboardSelectorState();
+}
+
+class _AnimatedDashboardSelectorState extends State<_AnimatedDashboardSelector> {
+  void _showDashboardMenu() async {
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final Offset position =
+        button.localToGlobal(Offset.zero, ancestor: overlay);
+    final Size size = button.size;
+
+    final result = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromLTWH(0, position.dy + size.height, position.dx, size.height),
+        Offset.zero & overlay.size,
+      ),
+      items: widget.dashboards.map((dashboard) {
+        final isSelected = dashboard.id == widget.currentDashboard?.id;
+        return PopupMenuItem<String>(
+          value: dashboard.id,
+          child: Row(
+            children: [
+              if (isSelected)
+                Icon(
+                  Icons.check,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.primary,
+                )
+              else
+                const SizedBox(width: 18),
+              if (isSelected) const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  dashboard.name,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+
+    if (result != null) {
+      widget.onDashboardSelected(result);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: _showDashboardMenu,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                widget.currentDashboard?.name ?? 'Select Dashboard',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.arrow_drop_down,
+              color: Colors.white,
             ),
           ],
         ),
       ),
     );
   }
-
-  String _getConnectionStatusText(MqttConnectionState? state, MqttProvider mqttProvider) {
-    if (state == null) return 'Unknown connection state';
-
-    switch (state) {
-      case MqttConnectionState.connected:
-        return 'Connected to MQTT broker';
-      case MqttConnectionState.connecting:
-        return 'Connecting to MQTT broker...';
-      case MqttConnectionState.disconnected:
-        return 'Disconnected from MQTT broker';
-      case MqttConnectionState.faulted:
-        return 'Connection faulted';
-      default:
-        return 'Unknown connection state';
-    }
-  }
-
-  IconData _getConnectionStatusIcon(MqttProvider mqttProvider) {
-    final state = mqttProvider.connectionState;
-
-    switch (state) {
-      case MqttConnectionState.connected:
-        return Icons.check_circle; // Success icon for healthy connection
-      case MqttConnectionState.connecting:
-        return Icons.sync; // Sync icon for connecting
-      case MqttConnectionState.disconnected:
-      case MqttConnectionState.faulted:
-        return Icons.error; // Error icon
-      default:
-        return Icons.help_outline; // Unknown state
-    }
-  }
-
-  Color _getConnectionStatusColor(MqttProvider mqttProvider) {
-    final state = mqttProvider.connectionState;
-
-    switch (state) {
-      case MqttConnectionState.connected:
-        return Colors.green; // Green for healthy connection
-      case MqttConnectionState.connecting:
-        return Colors.blue; // Blue for connecting
-      case MqttConnectionState.disconnected:
-      case MqttConnectionState.faulted:
-        return Colors.red; // Red for disconnected/error state
-      default:
-        return Colors.grey; // Grey for unknown state
-    }
-  }
 }
+

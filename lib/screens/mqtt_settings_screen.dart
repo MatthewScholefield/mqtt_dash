@@ -153,83 +153,76 @@ class _MqttSettingsScreenState extends State<MqttSettingsScreen> {
 
   Widget _buildConfigCard(MqttConfig config) {
     return Consumer<MqttProvider>(
-      builder: (context, mqttProvider, child) => Card(
-        margin: const EdgeInsets.only(bottom: 12.0),
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: config.useTls ? Colors.green : Colors.blue,
-            child: Icon(
-              config.useTls ? Icons.lock : Icons.public,
-              color: Colors.white,
+      builder: (context, mqttProvider, child) {
+        final connectionState = mqttProvider.getConnectionState(config.id);
+        final isConnected = connectionState == MqttConnectionState.connected;
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12.0),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: config.useTls ? Colors.green : Colors.blue,
+              child: Icon(
+                config.useTls ? Icons.lock : Icons.public,
+                color: Colors.white,
+              ),
             ),
-          ),
-          title: Text(config.name),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${config.host}:${config.port}'),
-              if (config.username.isNotEmpty)
-                Text('Username: ${config.username}'),
-              Row(
-                children: [
-                  Icon(
-                    mqttProvider.connectionState == MqttConnectionState.connected
-                        ? Icons.circle
-                        : Icons.circle_outlined,
-                    size: 8,
-                    color: mqttProvider.connectionState == MqttConnectionState.connected
-                        ? Colors.green
-                        : Colors.grey,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    mqttProvider.connectionState == MqttConnectionState.connected
-                        ? 'Connected'
-                        : 'Disconnected',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: mqttProvider.connectionState == MqttConnectionState.connected
-                          ? Colors.green
-                          : Colors.grey,
+            title: Text(config.name),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${config.host}:${config.port}'),
+                if (config.username.isNotEmpty)
+                  Text('Username: ${config.username}'),
+                Row(
+                  children: [
+                    Icon(
+                      isConnected ? Icons.circle : Icons.circle_outlined,
+                      size: 8,
+                      color: isConnected ? Colors.green : Colors.grey,
                     ),
+                    const SizedBox(width: 4),
+                    Text(
+                      isConnected ? 'Connected' : 'Disconnected',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isConnected ? Colors.green : Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) => _handleConfigAction(value, config),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'connect',
+                  child: ListTile(
+                    leading: Icon(isConnected ? Icons.link_off : Icons.connect_without_contact),
+                    title: Text(isConnected ? 'Disconnect' : 'Connect'),
                   ),
-                ],
-              ),
-            ],
+                ),
+                PopupMenuItem(
+                  value: 'edit',
+                  child: const ListTile(
+                    leading: Icon(Icons.edit),
+                    title: Text('Edit'),
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: const ListTile(
+                    leading: Icon(Icons.delete, color: Colors.red),
+                    title: Text('Delete'),
+                  ),
+                ),
+              ],
+            ),
+            onTap: () => _connectToConfig(config),
           ),
-          trailing: PopupMenuButton<String>(
-            onSelected: (value) => _handleConfigAction(value, config),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'connect',
-                child: ListTile(
-                  leading: Icon(mqttProvider.connectionState == MqttConnectionState.connected
-                      ? Icons.link_off
-                      : Icons.connect_without_contact),
-                  title: Text(mqttProvider.connectionState == MqttConnectionState.connected
-                      ? 'Disconnect'
-                      : 'Connect'),
-                ),
-              ),
-              PopupMenuItem(
-                value: 'edit',
-                child: const ListTile(
-                  leading: Icon(Icons.edit),
-                  title: Text('Edit'),
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: const ListTile(
-                  leading: Icon(Icons.delete, color: Colors.red),
-                  title: Text('Delete'),
-                ),
-              ),
-            ],
-          ),
-          onTap: () => _connectToConfig(config),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -238,8 +231,9 @@ class _MqttSettingsScreenState extends State<MqttSettingsScreen> {
       case 'connect':
         if (context.mounted) {
           final mqttProvider = Provider.of<MqttProvider>(context, listen: false);
-          if (mqttProvider.connectionState == MqttConnectionState.connected) {
-            mqttProvider.disconnect();
+          final isConnected = mqttProvider.isConfigConnected(config.id);
+          if (isConnected) {
+            mqttProvider.disconnectConfig(config.id);
           } else {
             _connectToConfig(config);
           }
@@ -270,9 +264,10 @@ class _MqttSettingsScreenState extends State<MqttSettingsScreen> {
           SnackBar(content: Text('Connected to ${config.name}')),
         );
       } else {
+        final errorMessage = mqttProvider.getErrorMessage(config.id);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(mqttProvider.errorMessage ?? 'Connection failed'),
+            content: Text(errorMessage ?? 'Connection failed'),
             backgroundColor: Colors.red,
           ),
         );

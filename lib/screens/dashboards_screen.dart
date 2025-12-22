@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/dashboard.dart';
+import '../models/mqtt_config.dart';
 import '../providers/dashboard_provider.dart';
-import '../providers/mqtt_provider.dart';
+import '../core/config_service.dart';
 
 class DashboardsScreen extends StatefulWidget {
   const DashboardsScreen({super.key});
@@ -233,13 +234,35 @@ class _EditDashboardDialog extends StatefulWidget {
 class _EditDashboardDialogState extends State<_EditDashboardDialog> {
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
+  final ConfigService _configService = ConfigService();
+  List<MqttConfig> _mqttConfigs = [];
+  String? _selectedMqttConfigId;
   bool _isLoading = false;
+  bool _isLoadingConfigs = true;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.dashboard.name);
     _descriptionController = TextEditingController(text: widget.dashboard.description);
+    _selectedMqttConfigId = widget.dashboard.mqttConfigId;
+    _loadMqttConfigs();
+  }
+
+  Future<void> _loadMqttConfigs() async {
+    final configs = await _configService.loadMqttConfigs();
+    if (mounted) {
+      setState(() {
+        _mqttConfigs = configs;
+        _isLoadingConfigs = false;
+        // If current config is not in the list, select the first one
+        if (_selectedMqttConfigId == null || _selectedMqttConfigId!.isEmpty) {
+          if (_mqttConfigs.isNotEmpty) {
+            _selectedMqttConfigId = _mqttConfigs.first.id;
+          }
+        }
+      });
+    }
   }
 
   @override
@@ -253,28 +276,55 @@ class _EditDashboardDialogState extends State<_EditDashboardDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Edit Dashboard'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Dashboard Name',
-              border: OutlineInputBorder(),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Dashboard Name',
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.words,
             ),
-            textCapitalization: TextCapitalization.words,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _descriptionController,
-            decoration: const InputDecoration(
-              labelText: 'Description (Optional)',
-              border: OutlineInputBorder(),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description (Optional)',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
             ),
-            maxLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-          ),
-        ],
+            const SizedBox(height: 16),
+            _isLoadingConfigs
+                ? const CircularProgressIndicator()
+                : DropdownButtonFormField<String>(
+                    value: _selectedMqttConfigId,
+                    decoration: const InputDecoration(
+                      labelText: 'MQTT Broker',
+                      border: OutlineInputBorder(),
+                      helperText: 'Select the MQTT broker for this dashboard',
+                    ),
+                    items: _mqttConfigs.map((config) {
+                      return DropdownMenuItem<String>(
+                        value: config.id,
+                        child: Text(
+                          config.name,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedMqttConfigId = value;
+                      });
+                    },
+                  ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -304,6 +354,13 @@ class _EditDashboardDialogState extends State<_EditDashboardDialog> {
       return;
     }
 
+    if (_selectedMqttConfigId == null || _selectedMqttConfigId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an MQTT broker')),
+      );
+      return;
+    }
+
     final dashboardProvider = context.read<DashboardProvider>();
 
     // Check for duplicate names (excluding current dashboard)
@@ -323,6 +380,7 @@ class _EditDashboardDialogState extends State<_EditDashboardDialog> {
       final updatedDashboard = widget.dashboard.copyWith(
         name: name,
         description: _descriptionController.text.trim(),
+        mqttConfigId: _selectedMqttConfigId!,
       );
 
       await dashboardProvider.updateDashboard(updatedDashboard);
@@ -359,7 +417,30 @@ class _CreateDashboardDialog extends StatefulWidget {
 class _CreateDashboardDialogState extends State<_CreateDashboardDialog> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final ConfigService _configService = ConfigService();
+  List<MqttConfig> _mqttConfigs = [];
+  String? _selectedMqttConfigId;
   bool _isLoading = false;
+  bool _isLoadingConfigs = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMqttConfigs();
+  }
+
+  Future<void> _loadMqttConfigs() async {
+    final configs = await _configService.loadMqttConfigs();
+    if (mounted) {
+      setState(() {
+        _mqttConfigs = configs;
+        _isLoadingConfigs = false;
+        if (_mqttConfigs.isNotEmpty) {
+          _selectedMqttConfigId = _mqttConfigs.first.id;
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -372,29 +453,56 @@ class _CreateDashboardDialogState extends State<_CreateDashboardDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Create New Dashboard'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Dashboard Name',
-              border: OutlineInputBorder(),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Dashboard Name',
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.words,
+              autofocus: true,
             ),
-            textCapitalization: TextCapitalization.words,
-            autofocus: true,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _descriptionController,
-            decoration: const InputDecoration(
-              labelText: 'Description (Optional)',
-              border: OutlineInputBorder(),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description (Optional)',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
             ),
-            maxLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-          ),
-        ],
+            const SizedBox(height: 16),
+            _isLoadingConfigs
+                ? const CircularProgressIndicator()
+                : DropdownButtonFormField<String>(
+                    value: _selectedMqttConfigId,
+                    decoration: const InputDecoration(
+                      labelText: 'MQTT Broker',
+                      border: OutlineInputBorder(),
+                      helperText: 'Select the MQTT broker for this dashboard',
+                    ),
+                    items: _mqttConfigs.map((config) {
+                      return DropdownMenuItem<String>(
+                        value: config.id,
+                        child: Text(
+                          config.name,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedMqttConfigId = value;
+                      });
+                    },
+                  ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -424,6 +532,13 @@ class _CreateDashboardDialogState extends State<_CreateDashboardDialog> {
       return;
     }
 
+    if (_selectedMqttConfigId == null || _selectedMqttConfigId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an MQTT broker')),
+      );
+      return;
+    }
+
     final dashboardProvider = context.read<DashboardProvider>();
 
     // Check for duplicate names
@@ -440,14 +555,10 @@ class _CreateDashboardDialogState extends State<_CreateDashboardDialog> {
     });
 
     try {
-      // Get current MQTT config to use for new dashboard
-      final mqttProvider = context.read<MqttProvider>();
-      final mqttConfigId = mqttProvider.lastConnectedConfigId ?? 'default';
-
       final newDashboard = await dashboardProvider.createDashboard(
         name: name,
         description: _descriptionController.text.trim(),
-        mqttConfigId: mqttConfigId,
+        mqttConfigId: _selectedMqttConfigId!,
       );
 
       // Switch to the new dashboard
