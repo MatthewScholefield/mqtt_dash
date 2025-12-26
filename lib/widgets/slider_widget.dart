@@ -263,7 +263,6 @@ class _InteractiveSliderWidgetState extends State<InteractiveSliderWidget> {
           margin: EdgeInsets.zero,
           child: InkWell(
             onTap: () => _showWidgetSettings(context),
-            onLongPress: () => _showWidgetSettings(context),
             borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: const EdgeInsets.all(12),

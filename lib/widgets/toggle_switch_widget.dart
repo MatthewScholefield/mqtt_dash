@@ -250,7 +250,6 @@ class _InteractiveToggleSwitchWidgetState extends State<InteractiveToggleSwitchW
           margin: EdgeInsets.zero,
           child: InkWell(
             onTap: () => _toggleSwitch(mqttProvider),
-            onLongPress: () => _showWidgetSettings(context),
             onTapDown: (_) => _animationController.forward(),
             onTapUp: (_) => _animationController.reverse(),
             onTapCancel: () => _animationController.reverse(),
@@ -269,7 +268,6 @@ class _InteractiveToggleSwitchWidgetState extends State<InteractiveToggleSwitchW
                             widgetConfig: widget.widgetConfig,
                             currentState: _stateTracker.localValue,
                             onTap: () => _toggleSwitch(mqttProvider),
-                            onLongPress: () => _showWidgetSettings(context),
                             wrapWithCard: false,
                           ),
                         ),
@@ -321,9 +319,5 @@ class _InteractiveToggleSwitchWidgetState extends State<InteractiveToggleSwitchW
 
     _stateTracker.updateLocalValue(newState);
     setState(() {});
-  }
-
-  void _showWidgetSettings(BuildContext context) {
-    Navigator.of(context).pushNamed('/widget_settings', arguments: widget.widgetConfig);
   }
 }

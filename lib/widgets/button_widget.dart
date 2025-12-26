@@ -175,7 +175,6 @@ class _InteractiveButtonWidgetState extends State<InteractiveButtonWidget> {
           margin: EdgeInsets.zero,
           child: InkWell(
             onTap: () => _toggleButton(mqttProvider),
-            onLongPress: () => _showWidgetSettings(context),
             borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: const EdgeInsets.all(12),
@@ -186,7 +185,6 @@ class _InteractiveButtonWidgetState extends State<InteractiveButtonWidget> {
                     widgetConfig: widget.widgetConfig,
                     currentState: _stateTracker.localValue,
                     onTap: () => _toggleButton(mqttProvider),
-                    onLongPress: () => _showWidgetSettings(context),
                     wrapWithCard: false,
                   ),
                 ),
@@ -235,9 +233,5 @@ class _InteractiveButtonWidgetState extends State<InteractiveButtonWidget> {
 
     _stateTracker.updateLocalValue(newState);
     setState(() {});
-  }
-
-  void _showWidgetSettings(BuildContext context) {
-    Navigator.of(context).pushNamed('/widget_settings', arguments: widget.widgetConfig);
   }
 }

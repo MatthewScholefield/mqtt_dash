@@ -302,7 +302,7 @@ class _EditDashboardDialogState extends State<_EditDashboardDialog> {
             _isLoadingConfigs
                 ? const CircularProgressIndicator()
                 : DropdownButtonFormField<String>(
-                    value: _selectedMqttConfigId,
+                    initialValue: _selectedMqttConfigId,
                     decoration: const InputDecoration(
                       labelText: 'MQTT Broker',
                       border: OutlineInputBorder(),
@@ -480,7 +480,7 @@ class _CreateDashboardDialogState extends State<_CreateDashboardDialog> {
             _isLoadingConfigs
                 ? const CircularProgressIndicator()
                 : DropdownButtonFormField<String>(
-                    value: _selectedMqttConfigId,
+                    initialValue: _selectedMqttConfigId,
                     decoration: const InputDecoration(
                       labelText: 'MQTT Broker',
                       border: OutlineInputBorder(),

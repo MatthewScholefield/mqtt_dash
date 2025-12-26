@@ -149,6 +149,26 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> reorderWidgets(int oldIndex, int newIndex) async {
+    if (_currentDashboard == null) return;
+
+    try {
+      final widgets = List<DashboardWidget>.from(_currentDashboard!.widgets);
+      if (oldIndex < widgets.length && newIndex < widgets.length) {
+        final widget = widgets.removeAt(oldIndex);
+        widgets.insert(newIndex, widget);
+
+        final updatedDashboard = _currentDashboard!.copyWith(
+          widgets: widgets,
+          lastModified: DateTime.now(),
+        );
+        await updateDashboard(updatedDashboard);
+      }
+    } catch (e) {
+      AppLogger.warning('Failed to reorder widgets', e);
+    }
+  }
+
   Future<void> initializeDefaults() async {
     try {
       await _configService.initializeDefaults();

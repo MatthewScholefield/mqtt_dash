@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:reorderable_staggered_scroll_view/reorderable_staggered_scroll_view.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import '../models/dashboard.dart';
 import '../models/dashboard_widget.dart';
@@ -202,15 +202,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: MasonryGridView.count(
+              child: ReorderableStaggeredScrollView.grid(
+                enable: _isEditing,
+                padding: EdgeInsets.zero,
+                scrollDirection: Axis.vertical,
+                physics: const BouncingScrollPhysics(),
                 crossAxisCount: _getCrossAxisCount(context),
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                itemCount: currentDashboard.widgets.length,
-                itemBuilder: (context, index) {
-                  final widget = currentDashboard.widgets[index];
-                  return _buildWidgetCard(widget, index);
+                isLongPressDraggable: true,
+                onAccept: (item1, item2, value) async {
+                  debugPrint('[Reorder] onAccept called - item1: ${item1?.key}, item2: ${item2.key}, value: $value');
+                  if (item1 != null) {
+                    final key1 = item1.key;
+                    final key2 = item2.key;
+                    debugPrint('[Reorder] key1: $key1, key2: $key2');
+                    final oldIndex = currentDashboard.widgets.indexWhere((w) => w.id == (key1 as ValueKey).value);
+                    final newIndex = currentDashboard.widgets.indexWhere((w) => w.id == (key2 as ValueKey).value);
+                    debugPrint('[Reorder] oldIndex: $oldIndex, newIndex: $newIndex');
+                    if (oldIndex >= 0 && newIndex >= 0) {
+                      await dashboardProvider.reorderWidgets(oldIndex, newIndex);
+                      debugPrint('[Reorder] Reorder completed');
+                    }
+                  }
                 },
+                children: currentDashboard.widgets.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final widgetConfig = entry.value;
+                  return ReorderableStaggeredScrollViewGridCountItem(
+                    key: ValueKey(widgetConfig.id),
+                    mainAxisCellCount: _getMainAxisCellCount(widgetConfig.type),
+                    crossAxisCellCount: _getCrossAxisCellCount(widgetConfig.type),
+                    widget: _buildWidgetCard(widgetConfig, index),
+                  );
+                }).toList(),
               ),
             ),
           );
@@ -251,6 +274,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (screenWidth > 800) return maxColumns < 4 ? maxColumns : 4;
     if (screenWidth > 600) return maxColumns < 3 ? maxColumns : 3;
     return maxColumns < 2 ? maxColumns : 2;
+  }
+
+  int _getMainAxisCellCount(WidgetType type) {
+    switch (type) {
+      case WidgetType.slider:
+        return 2;
+      case WidgetType.button:
+      case WidgetType.toggleSwitch:
+      case WidgetType.sensorDisplay:
+      case WidgetType.textDisplay:
+        return 1;
+    }
+  }
+
+  int _getCrossAxisCellCount(WidgetType type) {
+    return 1;
   }
 
   Widget _buildWidgetCard(DashboardWidget widgetConfig, int index) {

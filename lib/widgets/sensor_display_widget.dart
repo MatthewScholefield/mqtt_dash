@@ -228,7 +228,6 @@ class _InteractiveSensorDisplayWidgetState extends State<InteractiveSensorDispla
           margin: EdgeInsets.zero,
           child: InkWell(
             onTap: () => _handleRefresh(mqttProvider),
-            onLongPress: () => _showWidgetSettings(context),
             borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: const EdgeInsets.all(12),
@@ -241,7 +240,6 @@ class _InteractiveSensorDisplayWidgetState extends State<InteractiveSensorDispla
                       // Pass the state tracker to use the last known value
                       stateTracker: _stateTracker,
                       onTap: () => _handleRefresh(mqttProvider),
-                      onLongPress: () => _showWidgetSettings(context),
                       wrapWithCard: false,
                     ),
                   ),
@@ -283,9 +281,5 @@ class _InteractiveSensorDisplayWidgetState extends State<InteractiveSensorDispla
         widget.widgetConfig.customProperties['refreshEnabled'] == true) {
       // Could implement a refresh mechanism if the sensor supports it
     }
-  }
-
-  void _showWidgetSettings(BuildContext context) {
-    Navigator.of(context).pushNamed('/widget_settings', arguments: widget.widgetConfig);
   }
 }
